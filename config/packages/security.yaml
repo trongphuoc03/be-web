@@ -1,0 +1,25 @@
+security:
+    # Cấu hình password hashers
+    password_hashers:
+        Symfony\Component\Security\Core\User\InMemoryUser: 'bcrypt'  # Dùng bcrypt
+
+    # Cấu hình providers
+    providers:
+        in_memory:  # Định nghĩa provider 'in_memory'
+            memory:
+                users:
+                    admin:  # Một người dùng mẫu
+                        password: '$2b$12$r3jKkqsVNWDq2tJrgXJb5.dcS7.cfBb.LMZUOpsQfXDyFKRc/Zw6m'  # Mật khẩu đã mã hóa
+                        roles: 'ROLE_ADMIN'  # Quyền của người dùng mẫu
+
+    # Cấu hình firewalls
+    firewalls:
+        api:
+            pattern: ^/api  # Bảo vệ các route bắt đầu với /api
+            stateless: true  # Không lưu trạng thái người dùng
+            provider: in_memory  # Sử dụng provider 'in_memory' đã cấu hình ở trên
+            http_basic: ~  # Sử dụng HTTP Basic Authentication
+
+    access_control:
+        - { path: ^/api/doc, roles: ROLE_ADMIN }  # Cho phép truy cập không cần xác thực
+        - { path: ^/api, roles: ROLE_ADMIN }  # Yêu cầu quyền ADMIN cho các route API khác

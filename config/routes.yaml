@@ -1,0 +1,10 @@
+controllers:
+    resource:
+        path: ../src/Controller/
+        namespace: App\Controller
+    type: attribute
+swagger_ui:
+    path: /api/docs
+    controller: Nelmio\ApiDocBundle\Controller\SwaggerUiController::indexAction
+    defaults:
+        documentation: 'http://localhost/swagger.json'
