@@ -93,9 +93,9 @@ class Promo
         $this->discount = $discount;
     }
 
-    public function setCreatedDate(\DateTime $createdDate): void
+    public function setCreatedDate(): void
     {
-        $this->createdDate = $createdDate;
+        $this->createdDate = new \DateTime();
     }
 
     public function setExpiredDate(\DateTime $expiredDate): void

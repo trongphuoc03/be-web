@@ -11,24 +11,29 @@ use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
+use App\Service\JWTService;
 
 class HotelController extends AbstractController
 {
     private const HOTEL_ROUTE = '/hotels/{id}';
 
-    public function __construct(private HotelService $hotelService) {}
+    public function __construct(private HotelService $hotelService, private JWTService $jWTService) {}
 
     #[Route('/hotels', methods: ['POST'])]
     public function create(Request $request): JsonResponse
     {
+        $check = $this->checkAdminRole($request);
+        if (!$check) {
+            return $this->json(['message' => 'Không đủ quyền'], Response::HTTP_UNAUTHORIZED);
+        }
         $data = json_decode($request->getContent(), true);
         $dto = new CreateHotelDTO(
-            name: $data['name'] ?? null,
-            location: $data['location'] ?? null,
-            phone: $data['phone'] ?? null,
-            emptyRoom: $data['emptyRoom'] ?? null,
-            price: $data['price'] ?? null,
-            description: $data['description'] ?? null
+            name: $data['name'],
+            location: $data['location'],
+            phone: $data['phone'],
+            emptyRoom: $data['emptyRoom'],
+            price: $data['price'],
+            description: $data['description']
         );
         $hotel = $this->hotelService->createHotel($dto);
 
@@ -53,23 +58,27 @@ class HotelController extends AbstractController
         $hotel = $this->hotelService->getHotelById($id);
 
         if (!$hotel) {
-            return $this->json(['message' => 'Hotel not found'], Response::HTTP_NOT_FOUND);
+            return $this->json(['message' => 'Không tìm thấy khách sạn'], Response::HTTP_NOT_FOUND);
         }
 
         return $this->json(new HotelResponseDTO($hotel));
     }
 
-    #[Route(self::HOTEL_ROUTE, methods: ['PUT'])]
+    #[Route(self::HOTEL_ROUTE, methods: ['PATCH'])]
     public function update(int $id, Request $request): JsonResponse
     {
+        $check = $this->checkAdminRole($request);
+        if (!$check) {
+            return $this->json(['message' => 'Không đủ quyền'], Response::HTTP_UNAUTHORIZED);
+        }
         $data = json_decode($request->getContent(), true);
         $dto = new UpdateHotelDTO(
-            name: $data['name'] ?? null,
-            location: $data['location'] ?? null,
-            phone: $data['phone'] ?? null,
-            emptyRoom: $data['emptyRoom'] ?? null,
-            price: $data['price'] ?? null,
-            description: $data['description'] ?? null
+            name: $data['name'],
+            location: $data['location'],
+            phone: $data['phone'],
+            emptyRoom: $data['emptyRoom'],
+            price: $data['price'],
+            description: $data['description']
         );
 
         $hotel = $this->hotelService->updateHotel($id, $dto);
@@ -78,10 +87,33 @@ class HotelController extends AbstractController
     }
 
     #[Route(self::HOTEL_ROUTE, methods: ['DELETE'])]
-    public function delete(int $id): JsonResponse
+    public function delete(int $id, Request $request): JsonResponse
     {
+        $check = $this->checkAdminRole($request);
+        if (!$check) {
+            return $this->json(['message' => 'Không đủ quyền'], Response::HTTP_UNAUTHORIZED);
+        }
         $this->hotelService->deleteHotel($id);
 
-        return $this->json(['message' => 'Hotel deleted successfully'], Response::HTTP_NO_CONTENT);
+        return $this->json(['message' => 'Xóa khách sạn thành công'], Response::HTTP_OK);
+    }
+
+    private function checkAdminRole(Request $request)
+    {
+       // Lấy header Authorization
+       $authorizationHeader = $request->headers->get('Authorization');
+       $check = true;
+       // Kiểm tra nếu không có header hoặc header không đúng định dạng
+       if (!$authorizationHeader || !preg_match('/Bearer\s(\S+)/', $authorizationHeader, $matches)) {
+           $check = false;
+       }
+       // Tách token từ header
+       $token = $matches[1];
+
+       // Kiểm tra role
+       if (!$this->jWTService->isAdmin($token)) {
+           $check = false;
+       }
+       return $check;
     }
 }

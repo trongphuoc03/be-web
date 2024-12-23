@@ -11,22 +11,28 @@ use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
-
+use App\Service\JWTService;
+use DateTime;
 class PromoController extends AbstractController
 {
-    public function __construct(private PromoService $promoService) {}
+    public function __construct(private PromoService $promoService, private JWTService $jWTService) {}
 
     #[Route('/promos', methods: ['POST'])]
     public function create(Request $request): JsonResponse
     {
+        $check = $this->checkAdminRole($request);
+        if (!$check) {
+            return $this->json(['message' => 'Không đủ quyền'], Response::HTTP_UNAUTHORIZED);
+        }
         $data = json_decode($request->getContent(), true);
+        $expiredDate = DateTime::createFromFormat('Y-m-d H:i:s', $data['expiredDate']);
         $dto = new CreatePromoDTO(
-            name: $data['name'] ?? null,
-            description: $data['description'] ?? null,
-            discount: $data['discount'] ?? null,
-            expiredDate: $data['expiredDate'] ?? null,
-            amount: $data['amount'] ?? null,
-            conditions: $data['conditions'] ?? null
+            name: $data['name'],
+            description: $data['description'],
+            discount: $data['discount'],
+            expiredDate: $expiredDate,
+            amount: $data['amount'],
+            conditions: $data['conditions']
         );
         $promo = $this->promoService->createPromo($dto);
 
@@ -54,7 +60,7 @@ class PromoController extends AbstractController
         $promo = $this->promoService->getPromoById($id);
 
         if (!$promo) {
-            return $this->json(['message' => 'Promo not found'], Response::HTTP_NOT_FOUND);
+            return $this->json(['message' => 'Không tìm thấy khuyến mãi'], Response::HTTP_NOT_FOUND);
         }
 
         return $this->json((new PromoResponseDTO($promo))->toArray());
@@ -63,14 +69,19 @@ class PromoController extends AbstractController
     #[Route(self::PROMO_ROUTE, methods: ['PATCH'])]
     public function update(int $id, Request $request): JsonResponse
     {
+        $check = $this->checkAdminRole($request);
+        if (!$check) {
+            return $this->json(['message' => 'Không đủ quyền'], Response::HTTP_UNAUTHORIZED);
+        }
         $data = json_decode($request->getContent(), true);
+        $expiredDate = DateTime::createFromFormat('Y-m-d H:i:s', $data['expiredDate']);
         $dto = new UpdatePromoDTO(
-            name: $data['name'] ?? null,
-            description: $data['description'] ?? null,
-            discount: $data['discount'] ?? null,
-            expiredDate: $data['expiredDate'] ?? null,
-            amount: $data['amount'] ?? null,
-            conditions: $data['conditions'] ?? null
+            name: $data['name'],
+            description: $data['description'],
+            discount: $data['discount'],
+            expiredDate: $expiredDate,
+            amount: $data['amount'],
+            conditions: $data['conditions']
         );
 
         $promo = $this->promoService->updatePromo($id, $dto);
@@ -79,10 +90,33 @@ class PromoController extends AbstractController
     }
 
     #[Route(self::PROMO_ROUTE, methods: ['DELETE'])]
-    public function delete(int $id): JsonResponse
+    public function delete(int $id, Request $request): JsonResponse
     {
+        $check = $this->checkAdminRole($request);
+        if (!$check) {
+            return $this->json(['message' => 'Không đủ quyền'], Response::HTTP_UNAUTHORIZED);
+        }
         $this->promoService->deletePromo($id);
 
-        return $this->json(['message' => 'Promo deleted successfully'], Response::HTTP_NO_CONTENT);
+        return $this->json(['message' => 'Xóa khuyến mãi thành công'], Response::HTTP_OK);
+    }
+
+    private function checkAdminRole(Request $request)
+    {
+       // Lấy header Authorization
+       $authorizationHeader = $request->headers->get('Authorization');
+       $check = true;
+       // Kiểm tra nếu không có header hoặc header không đúng định dạng
+       if (!$authorizationHeader || !preg_match('/Bearer\s(\S+)/', $authorizationHeader, $matches)) {
+           $check = false;
+       }
+       // Tách token từ header
+       $token = $matches[1];
+
+       // Kiểm tra role
+       if (!$this->jWTService->isAdmin($token)) {
+           $check = false;
+       }
+       return $check;
     }
 }

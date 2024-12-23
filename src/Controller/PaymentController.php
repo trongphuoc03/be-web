@@ -11,11 +11,12 @@ use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
+use App\Service\JWTService;
 
 class PaymentController extends AbstractController
 {
     private const PAYMENT_ROUTE = '/payments/{id}';
-    public function __construct(private PaymentService $paymentService) {}
+    public function __construct(private PaymentService $paymentService, private JWTService $jWTService) {}
 
     #[Route('/payments', methods: ['POST'])]
     public function create(Request $request): JsonResponse
@@ -50,10 +51,33 @@ class PaymentController extends AbstractController
         return $this->json(new PaymentResponseDTO($payment));
     }
     #[Route(self::PAYMENT_ROUTE, methods: ['DELETE'])]
-    public function delete(int $id): JsonResponse
+    public function delete(int $id, Request $request): JsonResponse
     {
+        $check = $this->checkAdminRole($request);
+        if (!$check) {
+            return $this->json(['message' => 'Không đủ quyền'], Response::HTTP_UNAUTHORIZED);
+        }
         $this->paymentService->deletePayment($id);
 
-        return $this->json(['message' => 'Payment deleted successfully'], Response::HTTP_NO_CONTENT);
+        return $this->json(['message' => 'Payment deleted successfully'], Response::HTTP_OK);
+    }
+
+    private function checkAdminRole(Request $request)
+    {
+       // Lấy header Authorization
+       $authorizationHeader = $request->headers->get('Authorization');
+       $check = true;
+       // Kiểm tra nếu không có header hoặc header không đúng định dạng
+       if (!$authorizationHeader || !preg_match('/Bearer\s(\S+)/', $authorizationHeader, $matches)) {
+           $check = false;
+       }
+       // Tách token từ header
+       $token = $matches[1];
+
+       // Kiểm tra role
+       if (!$this->jWTService->isAdmin($token)) {
+           $check = false;
+       }
+       return $check;
     }
 }

@@ -22,8 +22,6 @@ class Booking
     #[ORM\ManyToOne(targetEntity: Promo::class)]
     #[ORM\JoinColumn(name: "Promo_ID", referencedColumnName: "id", nullable: true, onDelete: "SET NULL")]
     private ?Promo $promo = null;
-    
-       
 
     #[ORM\Column(type: 'datetime')]
     private \DateTime $bookingDate;

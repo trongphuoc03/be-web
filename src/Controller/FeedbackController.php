@@ -11,22 +11,23 @@ use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
+use App\Service\JWTService;
 
 class FeedbackController extends AbstractController
 {
     private const FEEDBACK_ROUTE = '/feedbacks/{id}';
-    public function __construct(private FeedbackService $feedbackService) {}
+    public function __construct(private FeedbackService $feedbackService, private JWTService $jWTService) {}
 
     #[Route('/feedbacks', methods: ['POST'])]
     public function create(Request $request): JsonResponse
     {
         $data = json_decode($request->getContent(), true);
         $dto = new CreateFeedbackDTO(
-            userId: $data['userId'] ?? null,
-            ratedType: $data['ratedType'] ?? null,
-            relatedId: $data['relatedId'] ?? null,
-            rating: $data['rating'] ?? null,
-            comment: $data['comment'] ?? null
+            userId: $data['userId'],
+            ratedType: $data['ratedType'],
+            relatedId: $data['relatedId'],
+            rating: $data['rating'],
+            comment: $data['comment']
         );
         $feedback = $this->feedbackService->createFeedback($dto);
 
@@ -55,15 +56,16 @@ class FeedbackController extends AbstractController
 
         return $this->json(new FeedbackResponseDTO($feedback));
     }
-    #[Route(self::FEEDBACK_ROUTE, methods: ['PUT'])]
+    #[Route(self::FEEDBACK_ROUTE, methods: ['PATCH'])]
     public function update(int $id, Request $request): JsonResponse
     {
+
         $data = json_decode($request->getContent(), true);
         $dto = new UpdateFeedbackDTO(
-            ratedType: $data['ratedType'] ?? null,
-            relatedId: $data['relatedId'] ?? null,
-            rating: $data['rating'] ?? null,
-            comment: $data['comment'] ?? null
+            ratedType: $data['ratedType'],
+            relatedId: $data['relatedId'],
+            rating: $data['rating'],
+            comment: $data['comment']
         );
 
         $feedback = $this->feedbackService->updateFeedback($id, $dto);
@@ -71,10 +73,30 @@ class FeedbackController extends AbstractController
         return $this->json(new FeedbackResponseDTO($feedback));
     }
     #[Route(self::FEEDBACK_ROUTE, methods: ['DELETE'])]
-    public function delete(int $id): JsonResponse
+    public function delete(int $id, Request $request): JsonResponse
     {
+        
         $this->feedbackService->deleteFeedback($id);
 
-        return $this->json(['message' => 'Feedback deleted successfully'], Response::HTTP_NO_CONTENT);
+        return $this->json(['message' => 'Feedback deleted successfully'], Response::HTTP_OK);
+    }
+
+    private function checkAdminRole(Request $request)
+    {
+       // Lấy header Authorization
+       $authorizationHeader = $request->headers->get('Authorization');
+       $check = true;
+       // Kiểm tra nếu không có header hoặc header không đúng định dạng
+       if (!$authorizationHeader || !preg_match('/Bearer\s(\S+)/', $authorizationHeader, $matches)) {
+           $check = false;
+       }
+       // Tách token từ header
+       $token = $matches[1];
+
+       // Kiểm tra role
+       if (!$this->jWTService->isAdmin($token)) {
+           $check = false;
+       }
+       return $check;
     }
 }

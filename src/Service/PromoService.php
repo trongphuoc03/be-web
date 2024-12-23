@@ -18,6 +18,7 @@ class PromoService
         $promo->setName($promoDTO->getName());
         $promo->setDescription($promoDTO->getDescription());
         $promo->setDiscount($promoDTO->getDiscount());
+        $promo->setCreatedDate();
         $promo->setExpiredDate($promoDTO->getExpiredDate());
         $promo->setAmount($promoDTO->getAmount());
         $promo->setConditions(PromoCondition::from($promoDTO->getConditions()));

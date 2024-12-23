@@ -16,6 +16,8 @@ class CreatePromoDTO
     #[Assert\Range(min: 0, max: 100)]
     public float $discount;
 
+    public \DateTimeInterface $createdDate;
+
     #[Assert\NotBlank]
     public \DateTimeInterface $expiredDate;
 
@@ -30,6 +32,7 @@ class CreatePromoDTO
         $this->name = $name;
         $this->description = $description;
         $this->discount = $discount;
+        $this->createdDate = new \DateTime();
         $this->expiredDate = $expiredDate;
         $this->amount = $amount;
         $this->conditions = $conditions;
@@ -50,6 +53,10 @@ class CreatePromoDTO
         return $this->discount;
     }
 
+    public function getCreatedDate(): \DateTimeInterface
+    {
+        return $this->createdDate;
+    }
     public function getExpiredDate(): \DateTimeInterface
     {
         return $this->expiredDate;
@@ -78,6 +85,11 @@ class CreatePromoDTO
     public function setDiscount(float $discount): void
     {
         $this->discount = $discount;
+    }
+
+    public function setCreatedDate(): void
+    {
+        $this->createdDate = new \DateTime();
     }
 
     public function setExpiredDate(\DateTimeInterface $expiredDate): void

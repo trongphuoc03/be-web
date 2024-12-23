@@ -2,10 +2,12 @@
 
 namespace App\Controller;
 
+use App\Service\JWTService;
 use App\DTO\Request\User\CreateUserDTO;
 use App\DTO\Request\User\UpdateUserDTO;
 use App\DTO\Response\User\UserResponseDTO;
 use App\Entity\User;
+use App\Enum\UserRole;
 use App\Service\UserService;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -15,19 +17,19 @@ use Symfony\Component\Routing\Annotation\Route;
 
 class UserController extends AbstractController
 {
-    public function __construct(private UserService $userService) {}
+    public function __construct(private UserService $userService, private JWTService $jwtService) {}
 
-    #[Route('/users', methods: ['POST'])]
+    #[Route('/signup', methods: ['POST'])]
     public function createUser(Request $request): JsonResponse
     {
         $data = json_decode($request->getContent(), true);
         $dto = new CreateUserDTO(
-            username: $data['username'] ?? null,
-            password: $data['password'] ?? null,
-            email: $data['email'] ?? null,
+            username: $data['username'],
+            password: $data['password'],
+            email: $data['email'],
             phone: $data['phone'] ?? null,
             address: $data['address'] ?? null,
-            role: $data['role'] ?? null
+            role: UserRole::USER->value
         );
 
         $user = $this->userService->createUser($dto);
@@ -35,8 +37,9 @@ class UserController extends AbstractController
     }
 
     #[Route('/users/bulk', methods: ['GET'])]
-    public function getAllUsers(): JsonResponse
+    public function getAllUsers(Request $request): JsonResponse
     {
+        $this->checkAdminRole($request);
         $users = $this->userService->getAllUsers();
         $response = [];
 
@@ -65,6 +68,7 @@ class UserController extends AbstractController
     public function updateUser(int $id, Request $request): JsonResponse
     {
         $data = json_decode($request->getContent(), true);
+        $user = $this->userService->getUserById($id);
         $dto = new UpdateUserDTO(
             username: $data['username'] ?? null,
             password: $data['password'] ?? null,
@@ -80,11 +84,56 @@ class UserController extends AbstractController
     }
 
     #[Route(self::USER_ROUTE, methods: ['DELETE'])]
-    // #[IsGranted('ROLE_ADMIN')]
     public function deleteUser(int $id): JsonResponse
     {
         $this->userService->deleteUser($id);
 
-        return $this->json(['message' => 'User deleted successfully'], Response::HTTP_NO_CONTENT);
+        return $this->json(['message' => 'User deleted successfully'], Response::HTTP_OK);
+    }
+
+    #[Route('/login', methods: ['POST'])]
+    public function login(Request $request): JsonResponse
+    {
+        $data = json_decode($request->getContent(), true);
+        if (empty($data['username']) || empty($data['password'])) {
+            return $this->json(['message' => 'Username or password không được để trống'], Response::HTTP_BAD_REQUEST);
+        }
+        $user = $this->userService->getUserByUsername($data['username']);
+        if ( !$user || !$this->userService->isPasswordValid($user, $data['password']) ) {
+            return $this->json(['message' => 'Tài khoản hoặc mật khẩu không đúng'], Response::HTTP_BAD_REQUEST);
+        }
+
+        $userData = [
+            'id' => $user->getId(),
+            'username' => $user->getUsername(),
+            'role' => $user->getRole()
+        ];
+
+        // Tạo JWT token
+        $token = $this->jwtService->createToken($userData);
+
+        // Trả về token
+        return $this->json([
+            'message' => 'Login successful',
+            'token' => $token,
+        ]);
+    }
+
+    private function checkAdminRole(Request $request)
+    {
+       // Lấy header Authorization
+       $authorizationHeader = $request->headers->get('Authorization');
+        
+       // Kiểm tra nếu không có header hoặc header không đúng định dạng
+       if (!$authorizationHeader || !preg_match('/Bearer\s(\S+)/', $authorizationHeader, $matches)) {
+           throw new \Exception ('Authorization header is missing or invalid', Response::HTTP_UNAUTHORIZED);
+       }
+       // Tách token từ header
+       $token = $matches[1];
+
+       // Kiểm tra role
+       if (!$this->jwtService->isAdmin($token)) {
+           throw new \Exception ('Unauthorized', Response::HTTP_UNAUTHORIZED);
+       }
     }
 }

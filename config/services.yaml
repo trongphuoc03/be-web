@@ -19,6 +19,10 @@ services:
             - '../src/DependencyInjection/'
             - '../src/Entity/'
             - '../src/Kernel.php'
+# config/services.yaml
+    App\Service\JWTService:
+        arguments:
+            $secretKey: '%env(JWT_SECRET_KEY)%'  # Chèn secret key từ .env.local
 
     # add more service definitions when explicit configuration is needed
     # please note that last definitions always *replace* previous ones

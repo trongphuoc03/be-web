@@ -2,6 +2,7 @@
 
 namespace App\Controller;
 
+use App\Service\JWTService;
 use App\DTO\Request\Activity\CreateActivityDTO;
 use App\DTO\Request\Activity\UpdateActivityDTO;
 use App\DTO\Response\Activity\ActivityResponseDTO;
@@ -14,23 +15,27 @@ use Symfony\Component\Routing\Annotation\Route;
 
 class ActivityController extends AbstractController
 {
-    public function __construct(private ActivityService $activityService) {}
+    public function __construct(private ActivityService $activityService, private JWTService $jWTService) {}
 
     #[Route('/activities', methods: ['POST'])]
     public function create(Request $request): JsonResponse
     {
+        $check = $this->checkAdminRole($request);
+        if (!$check) {
+            return $this->json(['message' => 'Không đủ quyền'], Response::HTTP_UNAUTHORIZED);
+        }
         $data = json_decode($request->getContent(), true);
         $dto = new CreateActivityDTO(
-            name: $data['name'] ?? null,
-            emptySlot: $data['emptySlot'] ?? null,
-            location: $data['location'] ?? null,
-            description: $data['description'] ?? null,
-            price: $data['price'] ?? null
+            name: $data['name'],
+            emptySlot: $data['emptySlot'],
+            location: $data['location'],
+            description: $data['description'],
+            price: $data['price']
         );
         
         $activity = $this->activityService->createActivity($dto);
 
-        return $this->json(new ActivityResponseDTO($activity), Response::HTTP_CREATED);
+        return $this->json((new ActivityResponseDTO($activity))->toArray(), Response::HTTP_CREATED);
     }
 
     #[Route('/activities/bulk', methods: ['GET'])]
@@ -52,34 +57,61 @@ class ActivityController extends AbstractController
         $activity = $this->activityService->getActivityById($id);
     
         if (!$activity) {
-            return $this->json(['message' => 'Activity not found'], Response::HTTP_NOT_FOUND);
+            return $this->json(['message' => 'Không tìm thấy hoạt động'], Response::HTTP_NOT_FOUND);
         }
     
         return $this->json((new ActivityResponseDTO($activity))->toArray());
     }
 
-    #[Route('/activities/{id}', methods: ['PUT'])]
+    #[Route('/activities/{id}', methods: ['PATCH'])]
     public function update(int $id, Request $request): JsonResponse
     {
+        $check = $this->checkAdminRole($request);
+        if (!$check) {
+            return $this->json(['message' => 'Không đủ quyền'], Response::HTTP_UNAUTHORIZED);
+        }
         $data = json_decode($request->getContent(), true);
         $dto = new UpdateActivityDTO(
-            name: $data['name'] ?? null,
-            emptySlot: $data['emptySlot'] ?? null,
-            location: $data['location'] ?? null,
-            description: $data['description'] ?? null,
-            price: $data['price'] ?? null
+            name: $data['name'],
+            emptySlot: $data['emptySlot'],
+            location: $data['location'],
+            description: $data['description'],
+            price: $data['price']
         );
 
         $activity = $this->activityService->updateActivity($id, $dto);
 
-        return $this->json(new ActivityResponseDTO($activity));
+        return $this->json((new ActivityResponseDTO($activity))->toArray());
     }
 
     #[Route('/activities/{id}', methods: ['DELETE'])]
-    public function delete(int $id): JsonResponse
+    public function delete(int $id, Request $request): JsonResponse
     {
+        $check = $this->checkAdminRole($request);
+        if (!$check) {
+            return $this->json(['message' => 'Không đủ quyền'], Response::HTTP_UNAUTHORIZED);
+        }
         $this->activityService->deleteActivity($id);
 
-        return $this->json(['message' => 'Activity deleted successfully'], Response::HTTP_NO_CONTENT);
+        return $this->json(['message' => 'Xóa hoạt động thành công']);
+    }
+
+    private function checkAdminRole(Request $request)
+    {
+       // Lấy header Authorization
+       $authorizationHeader = $request->headers->get('Authorization');
+       $check = true;
+       // Kiểm tra nếu không có header hoặc header không đúng định dạng
+       if (!$authorizationHeader || !preg_match('/Bearer\s(\S+)/', $authorizationHeader, $matches)) {
+           $check = false;
+       }
+       // Tách token từ header
+       $token = $matches[1];
+
+       // Kiểm tra role
+       if (!$this->jWTService->isAdmin($token)) {
+           $check = false;
+       }
+       return $check;
     }
 }

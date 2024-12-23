@@ -11,33 +11,20 @@ use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
+use App\Service\JWTService;
 
 class BookingDetailController extends AbstractController
 {
     private const BOOKING_DETAIL_ROUTE = '/booking-details/{id}';
-    public function __construct(private BookingDetailService $bookingDetailService) {}
+    public function __construct(private BookingDetailService $bookingDetailService, private JWTService $jWTService) {}
 
-    #[Route('/booking-details', methods: ['POST'])]
-    public function create(Request $request): JsonResponse
-    {
-        $data = json_decode($request->getContent(), true);
-        $dto = new CreateBookingDetailDTO(
-            bookingId: $data['bookingId'],
-            flightId: $data['flightId'],
-            hotelId: $data['hotelId'],
-            activityId: $data['activityId'],
-            comboId: $data['comboId'],
-            quantity: $data['quantity'],
-            checkInDate: $data['checkInDate'],
-            checkOutDate: $data['checkOutDate']
-        );
-        $bookingDetail = $this->bookingDetailService->createBookingDetail($dto);
-
-        return $this->json(new BookingDetailResponseDTO($bookingDetail), Response::HTTP_CREATED);
-    }
     #[Route('/booking-details/bulk', methods: ['GET'])]
-    public function bulkRead(): JsonResponse
+    public function bulkRead(Request $request): JsonResponse
     {
+        $check = $this->checkAdminRole($request);
+        if (!$check) {
+            return $this->json(['message' => 'Không đủ quyền'], Response::HTTP_UNAUTHORIZED);
+        }
         $bookingDetails = $this->bookingDetailService->getAllBookingDetails();
         $response = [];
 
@@ -48,7 +35,7 @@ class BookingDetailController extends AbstractController
         return $this->json($response);
     }
     #[Route(self::BOOKING_DETAIL_ROUTE, methods: ['GET'])]
-    public function read(int $id): JsonResponse
+    public function read(int $id, Request $request): JsonResponse
     {
         $bookingDetail = $this->bookingDetailService->getBookingDetailById($id);
 
@@ -58,9 +45,13 @@ class BookingDetailController extends AbstractController
 
         return $this->json((new BookingDetailResponseDTO($bookingDetail))->toArray());
     }
-    #[Route(self::BOOKING_DETAIL_ROUTE, methods: ['PUT'])]
+    #[Route(self::BOOKING_DETAIL_ROUTE, methods: ['PATCH'])]
     public function update(int $id, Request $request): JsonResponse
     {
+        $check = $this->checkAdminRole($request);
+        if (!$check) {
+            return $this->json(['message' => 'Không đủ quyền'], Response::HTTP_UNAUTHORIZED);
+        }
         $data = json_decode($request->getContent(), true);
         $dto = new UpdateBookingDetailDTO(
             quantity: $data['quantity'],
@@ -73,10 +64,33 @@ class BookingDetailController extends AbstractController
         return $this->json(new BookingDetailResponseDTO($bookingDetail));
     }
     #[Route(self::BOOKING_DETAIL_ROUTE, methods: ['DELETE'])]
-    public function delete(int $id): JsonResponse
+    public function delete(int $id, Request $request): JsonResponse
     {
+        $check = $this->checkAdminRole($request);
+        if (!$check) {
+            return $this->json(['message' => 'Không đủ quyền'], Response::HTTP_UNAUTHORIZED);
+        }
         $this->bookingDetailService->deleteBookingDetail($id);
 
-        return $this->json(['message' => 'Booking Detail deleted successfully'], Response::HTTP_NO_CONTENT);
+        return $this->json(['message' => 'Booking Detail deleted successfully'], Response::HTTP_OK);
+    }
+
+    private function checkAdminRole(Request $request)
+    {
+       // Lấy header Authorization
+       $authorizationHeader = $request->headers->get('Authorization');
+       $check = true;
+       // Kiểm tra nếu không có header hoặc header không đúng định dạng
+       if (!$authorizationHeader || !preg_match('/Bearer\s(\S+)/', $authorizationHeader, $matches)) {
+           $check = false;
+       }
+       // Tách token từ header
+       $token = $matches[1];
+
+       // Kiểm tra role
+       if (!$this->jWTService->isAdmin($token)) {
+           $check = false;
+       }
+       return $check;
     }
 }

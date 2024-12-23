@@ -2,18 +2,22 @@
 
 namespace App\DTO\Request\ComboDetail;
 
+use App\Entity\Activity;
+use App\Entity\Combo;
+use App\Entity\Flight;
+use App\Entity\Hotel;
 use Symfony\Component\Validator\Constraints as Assert;
 
 class CreateComboDetailDTO
 {
     #[Assert\NotBlank]
-    public int $comboId;
+    public Combo $comboId;
 
-    public ?int $flightId = null;
-    public ?int $hotelId = null;
-    public ?int $activityId = null;
+    public ?Flight $flightId = null;
+    public ?Hotel $hotelId = null;
+    public ?Activity $activityId = null;
 
-    public function __construct(int $comboId, ?int $flightId, ?int $hotelId, ?int $activityId)
+    public function __construct(Combo $comboId, ?Flight $flightId, ?Hotel $hotelId, ?Activity $activityId)
     {
         $this->comboId = $comboId;
         $this->flightId = $flightId;
@@ -21,42 +25,42 @@ class CreateComboDetailDTO
         $this->activityId = $activityId;
     }
 
-    public function getComboId(): int
+    public function getComboId(): Combo
     {
         return $this->comboId;
     }
 
-    public function getFlightId(): ?int
+    public function getFlightId(): ?Flight
     {
         return $this->flightId;
     }
 
-    public function getHotelId(): ?int
+    public function getHotelId(): ?Hotel
     {
         return $this->hotelId;
     }
 
-    public function getActivityId(): ?int
+    public function getActivityId(): ?Activity
     {
         return $this->activityId;
     }
 
-    public function setComboId(int $comboId): void
+    public function setComboId(Combo $comboId): void
     {
         $this->comboId = $comboId;
     }
 
-    public function setFlightId(?int $flightId): void
+    public function setFlightId(?Flight $flightId): void
     {
         $this->flightId = $flightId;
     }
 
-    public function setHotelId(?int $hotelId): void
+    public function setHotelId(?Hotel $hotelId): void
     {
         $this->hotelId = $hotelId;
     }
 
-    public function setActivityId(?int $activityId): void
+    public function setActivityId(?Activity $activityId): void
     {
         $this->activityId = $activityId;
     }

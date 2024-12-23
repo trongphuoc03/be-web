@@ -1,7 +1,7 @@
 security:
-    # Cấu hình password hashers
     password_hashers:
-        Symfony\Component\Security\Core\User\InMemoryUser: 'bcrypt'  # Dùng bcrypt
+        App\Entity\User:
+            algorithm: auto
 
     # Cấu hình providers
     providers:

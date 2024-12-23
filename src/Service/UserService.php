@@ -21,9 +21,24 @@ class UserService
         return $this->entityManager->getRepository(User::class)->findOneBy(['username' => $username]);
     }
 
+    public function findByEmail(string $email): ?User
+    {
+        // Tìm user theo email
+        return $this->entityManager->getRepository(User::class)->findOneBy(['email' => $email]);
+    }
+
     public function createUser(CreateUserDTO $dto): User
     {
         $user = new User();
+        $check = $this->findByUsername($dto->getUsername());
+        if ($check) {
+            throw new \Exception('Username already exists');
+        }
+        $check1 = $this->findByEmail($dto->getEmail());
+        if ($check1) {
+            throw new \Exception('Email already exists');
+        }
+        // Tạo mới user
         $user->setUsername($dto->getUsername());
         $user->setEmail($dto->getEmail());
         $user->setPassword($this->passwordEncoder->hashPassword($user, $dto->getPassword()));
@@ -45,6 +60,16 @@ class UserService
     public function getUserById(int $id): ?User
     {
         return $this->entityManager->getRepository(User::class)->find($id);
+    }
+
+    public function getUserByUsername(string $username): ?User
+    {
+        return $this->entityManager->getRepository(User::class)->findOneBy(['username' => $username]);
+    }
+
+    public function isPasswordValid(User $user, string $password): bool
+    {
+        return $this->passwordEncoder->isPasswordValid($user, $password);
     }
 
     public function updateUser(int $id, UpdateUserDTO $dto): User

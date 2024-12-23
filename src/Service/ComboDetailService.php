@@ -12,6 +12,11 @@ class ComboDetailService
 {
     public function __construct(private EntityManagerInterface $entityManager) {}
 
+    public function getComboDetailByComboId(int $comboId): ?ComboDetail
+    {
+        return $this->entityManager->getRepository(ComboDetail::class)->findOneBy(['combo' => $comboId]);
+    }
+
     public function createComboDetail(CreateComboDetailDTO $comboDetailDTO): ComboDetail
     {
         $comboDetail = new ComboDetail();
