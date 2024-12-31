@@ -28,7 +28,7 @@ class FlightController extends AbstractController
 
         $data = json_decode($request->getContent(), true);
 
-        // Đảm bảo thời gian đầu vào được đặt theo UTC
+        // Đảm bảo thời gian đầu vào sử dụng múi giờ UTC
         $startTime = DateTime::createFromFormat('Y-m-d H:i:s', $data['startTime'], new \DateTimeZone('UTC'));
         $endTime = DateTime::createFromFormat('Y-m-d H:i:s', $data['endTime'], new \DateTimeZone('UTC'));
 
@@ -48,14 +48,11 @@ class FlightController extends AbstractController
 
         $flight = $this->flightService->createFlight($dto);
 
-        // Đảm bảo phản hồi cũng sử dụng múi giờ UTC
-        return $this->json(
-            new FlightResponseDTO($flight),
-            Response::HTTP_CREATED,
-            [],
-            ['datetime_format' => 'Y-m-d\TH:i:sP'] // ISO 8601
-        );
+        $response = (new FlightResponseDTO($flight))->toArray();
+
+        return $this->json($response, Response::HTTP_CREATED);
     }
+
 
     #[Route('/flights/bulk', methods: ['GET'])]
     public function bulkRead(): JsonResponse
@@ -78,7 +75,7 @@ class FlightController extends AbstractController
             return $this->json(['message' => 'Không tìm thấy chuyến bay'], Response::HTTP_NOT_FOUND);
         }
 
-        return $this->json(new FlightResponseDTO($flight));
+        return $this->json((new FlightResponseDTO($flight))->toArray());
     }
     #[Route(self::FLIGHT_ROUTE, methods: ['PATCH'])]
     public function update(int $id, Request $request): JsonResponse
@@ -102,7 +99,7 @@ class FlightController extends AbstractController
 
         $flight = $this->flightService->updateFlight($id, $dto);
 
-        return $this->json(new FlightResponseDTO($flight));
+        return $this->json((new FlightResponseDTO($flight))->toArray());
     }
     #[Route(self::FLIGHT_ROUTE, methods: ['DELETE'])]
     public function delete(int $id, Request $request): JsonResponse

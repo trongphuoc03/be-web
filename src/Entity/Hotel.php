@@ -3,8 +3,7 @@
 namespace App\Entity;
 
 use Doctrine\ORM\Mapping as ORM;
-use ApiPlatform\Metadata\ApiResource;
-#[ApiResource] // Kích hoạt API Platform cho Entity này
+
 #[ORM\Entity]
 #[ORM\Table(name: "hotel")]
 class Hotel
@@ -16,6 +15,9 @@ class Hotel
 
     #[ORM\Column(type: 'string', length: 100)]
     private string $name;
+
+    #[ORM\Column(type: "string")]
+    private string $imgUrl;
 
     #[ORM\Column(type: 'string', length: 100)]
     private string $location;
@@ -41,6 +43,11 @@ class Hotel
     public function getName(): string
     {
         return $this->name;
+    }
+
+    public function getImgUrl(): string
+    {
+        return $this->imgUrl;
     }
 
     public function getLocation(): string
@@ -74,6 +81,11 @@ class Hotel
         $this->name = $name;
     }
 
+    public function setImgUrl(string $imgUrl): void
+    {
+        $this->imgUrl = $imgUrl;
+    }
+    
     public function setLocation(string $location): void
     {
         $this->location = $location;

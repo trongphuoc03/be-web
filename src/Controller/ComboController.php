@@ -5,8 +5,11 @@ namespace App\Controller;
 use App\DTO\Request\Combo\CreateComboDTO;
 use App\DTO\Request\Combo\UpdateComboDTO;
 use App\DTO\Request\ComboDetail\CreateComboDetailDTO;
+use App\DTO\Response\Activity\ActivityResponseDTO;
 use App\DTO\Response\Combo\ComboResponseDTO;
 use App\DTO\Response\ComboDetail\ComboDetailResponseDTO;
+use App\DTO\Response\Flight\FlightResponseDTO;
+use App\DTO\Response\Hotel\HotelResponseDTO;
 use App\Service\ActivityService;
 use App\Service\ComboDetailService;
 use App\Service\ComboService;
@@ -44,12 +47,17 @@ class ComboController extends AbstractController
         $hotel = $this->hotelService->getHotelById($data['hotelId']);
         $activity = $this->activityService->getActivityById($data['activityId']);
         $dto = new CreateComboDetailDTO(comboId: $combo, flightId: $flight, hotelId: $hotel, activityId: $activity);
-        $comboDetail = $this->comboDetailService->createComboDetail($dto);
-
-        return $this->json(array_merge(
-            (array) new ComboResponseDTO($combo),
-            (array) new ComboDetailResponseDTO($comboDetail)
-        ), Response::HTTP_CREATED);
+        $this->comboDetailService->createComboDetail($dto);
+        $response = [
+            'comboId' => $combo->getComboId(),
+            'name' => $combo->getName(),
+            'description' => $combo->getDescription(),
+            'price' => $combo->getPrice(),
+            'flight' => (new FlightResponseDTO($flight))->toArray(),
+            'hotel' => (new HotelResponseDTO($hotel))->toArray(),
+            'activity' => (new ActivityResponseDTO($activity))->toArray(),
+        ];
+        return $this->json( $response, Response::HTTP_CREATED);
         
     }
     #[Route('/combos/bulk', methods: ['GET'])]
@@ -61,8 +69,13 @@ class ComboController extends AbstractController
         foreach ($combos as $combo) {
             $comboDetail = $this->comboDetailService->getComboDetailByComboId($combo->getComboId());
             $response[] = [
-                'combo' => (new ComboResponseDTO($combo))->toArray(),
-                'comboDetail' => (new ComboDetailResponseDTO($comboDetail))->toArray(),
+                'comboId' => $combo->getComboId(),
+                'name' => $combo->getName(),
+                'description' => $combo->getDescription(),
+                'price' => $combo->getPrice(),
+                'flight' => $comboDetail ? (new FlightResponseDTO($comboDetail->getFlight()))->toArray() : null,
+                'hotel' => $comboDetail ? (new HotelResponseDTO($comboDetail->getHotel()))->toArray() : null,
+                'activity' => $comboDetail ? (new ActivityResponseDTO($comboDetail->getActivity()))->toArray() : null,
             ];
         }
 
@@ -78,7 +91,15 @@ class ComboController extends AbstractController
             return $this->json(['message' => 'Combo not found'], Response::HTTP_NOT_FOUND);
         }
 
-        return $this->json(['combo' => new ComboResponseDTO($combo), 'comboDetail' => new ComboDetailResponseDTO($comboDetail)]);
+        return $this->json([
+                'comboId' => $combo->getComboId(),
+                'name' => $combo->getName(),
+                'description' => $combo->getDescription(),
+                'price' => $combo->getPrice(),
+                'flight' => $comboDetail ? (new FlightResponseDTO($comboDetail->getFlight()))->toArray() : null,
+                'hotel' => $comboDetail ? (new HotelResponseDTO($comboDetail->getHotel()))->toArray() : null,
+                'activity' => $comboDetail ? (new ActivityResponseDTO($comboDetail->getActivity()))->toArray() : null,
+            ]);
     }
     #[Route(self::COMBO_ROUTE, methods: ['PATCH'])]
     public function update(int $id, Request $request): JsonResponse
@@ -91,8 +112,17 @@ class ComboController extends AbstractController
         $dto = new UpdateComboDTO(name: $data['name'], description: $data['description'], price: $data['price']);
 
         $combo = $this->comboService->updateCombo($id, $dto);
+        $comboDetail = $this->comboDetailService->getComboDetailByComboId($id);
 
-        return $this->json(new ComboResponseDTO($combo));
+        return $this->json([
+                'comboId' => $combo->getComboId(),
+                'name' => $combo->getName(),
+                'description' => $combo->getDescription(),
+                'price' => $combo->getPrice(),
+                'flight' => $comboDetail ? (new FlightResponseDTO($comboDetail->getFlight()))->toArray() : null,
+                'hotel' => $comboDetail ? (new HotelResponseDTO($comboDetail->getHotel()))->toArray() : null,
+                'activity' => $comboDetail ? (new ActivityResponseDTO($comboDetail->getActivity()))->toArray() : null,
+            ]);
     }
     #[Route(self::COMBO_ROUTE, methods: ['DELETE'])]
     public function delete(int $id, Request $request): JsonResponse
@@ -103,7 +133,7 @@ class ComboController extends AbstractController
         }
         $this->comboService->deleteCombo($id);
 
-        return $this->json(['message' => 'Combo deleted successfully'], Response::HTTP_OK);
+        return $this->json(['message' => 'Xóa combo thành công'], Response::HTTP_OK);
     }
 
     private function checkAdminRole(Request $request)

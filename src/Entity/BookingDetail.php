@@ -4,7 +4,7 @@ namespace App\Entity;
 
 use Doctrine\ORM\Mapping as ORM;
 use ApiPlatform\Metadata\ApiResource;
-#[ApiResource] // Kích hoạt API Platform cho Entity này
+ // Kích hoạt API Platform cho Entity này
 #[ORM\Entity]
 #[ORM\Table(name: "bookingdetail")]
 class BookingDetail

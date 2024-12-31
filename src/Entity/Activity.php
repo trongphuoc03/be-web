@@ -5,7 +5,7 @@ use Doctrine\ORM\Mapping as ORM;
 use ApiPlatform\Metadata\ApiResource;
 
 #[ORM\Entity]
-#[ApiResource]
+
 class Activity
 {
     #[ORM\Id]
@@ -15,6 +15,9 @@ class Activity
 
     #[ORM\Column(type: "string")]
     private string $name;
+
+    #[ORM\Column(type: "string")]
+    private string $imgUrl;
 
     #[ORM\Column(type: "integer")]
     private int $emptySlot;
@@ -37,6 +40,11 @@ class Activity
     public function getName(): string
     {
         return $this->name;
+    }
+
+    public function getImgUrl(): string
+    {
+        return $this->imgUrl;
     }
 
     public function getEmptySlot(): int
@@ -65,6 +73,10 @@ class Activity
         $this->name = $name;
     }
 
+    public function setImgUrl(string $imgUrl): void
+    {
+        $this->imgUrl = $imgUrl;
+    }
     public function setEmptySlot(int $emptySlot): void
     {
         $this->emptySlot = $emptySlot;

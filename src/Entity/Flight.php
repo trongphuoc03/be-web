@@ -4,7 +4,7 @@ namespace App\Entity;
 
 use Doctrine\ORM\Mapping as ORM;
 use ApiPlatform\Metadata\ApiResource;
-#[ApiResource] // Kích hoạt API Platform cho Entity này
+ // Kích hoạt API Platform cho Entity này
 #[ORM\Entity]
 #[ORM\Table(name: "flight")]
 class Flight
@@ -16,6 +16,9 @@ class Flight
 
     #[ORM\Column(type: 'string', length: 100)]
     private string $brand;
+
+    #[ORM\Column(type: "string")]
+    private string $imgUrl;
 
     #[ORM\Column(type: 'integer')]
     private int $emptySlot;
@@ -44,6 +47,11 @@ class Flight
     public function getBrand(): string
     {
         return $this->brand;
+    }
+
+    public function getImgUrl(): string
+    {
+        return $this->imgUrl;
     }
 
     public function getEmptySlot(): int
@@ -85,6 +93,11 @@ class Flight
     public function setEmptySlot(int $emptySlot): void
     {
         $this->emptySlot = $emptySlot;
+    }
+
+    public function setImgUrl(string $imgUrl): void
+    {
+        $this->imgUrl = $imgUrl;
     }
 
     public function setStartTime(\DateTime $startTime): void

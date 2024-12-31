@@ -10,7 +10,11 @@ use Doctrine\ORM\EntityManagerInterface;
 
 class ComboDetailService
 {
-    public function __construct(private EntityManagerInterface $entityManager) {}
+    public function __construct(private EntityManagerInterface $entityManager, 
+    private FlightService $flightService,
+    private HotelService $hotelService,
+    private ActivityService $activityService
+    ) {}
 
     public function getComboDetailByComboId(int $comboId): ?ComboDetail
     {
@@ -49,11 +53,14 @@ class ComboDetailService
         if (!$comboDetail) {
             throw new \Exception('ComboDetail not found');
         }
+        $flight = $this->flightService->getFlightById($comboDetailDTO->getFlightId());
+        $hotel = $this->hotelService->getHotelById($comboDetailDTO->getHotelId());
+        $activity = $this->activityService->getActivityById($comboDetailDTO->getActivityId());
 
         // Assuming ComboDetail has setters for each property in UpdateComboDetailDTO
-        $comboDetail->setFlight($comboDetailDTO->getFlightId());
-        $comboDetail->setHotel($comboDetailDTO->getHotelId());
-        $comboDetail->setActivity($comboDetailDTO->getActivityId());
+        $comboDetail->setFlight($flight);
+        $comboDetail->setHotel($hotel);
+        $comboDetail->setActivity($activity);
         // Add other properties as needed
 
         $this->entityManager->flush();

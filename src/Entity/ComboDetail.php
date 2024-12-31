@@ -3,8 +3,7 @@
 namespace App\Entity;
 
 use Doctrine\ORM\Mapping as ORM;
-use ApiPlatform\Metadata\ApiResource;
-#[ApiResource] // Kích hoạt API Platform cho Entity này
+
 #[ORM\Entity]
 #[ORM\Table(name: "combodetail")]
 class ComboDetail
@@ -20,15 +19,15 @@ class ComboDetail
 
     #[ORM\ManyToOne(targetEntity: Flight::class)]
     #[ORM\JoinColumn(nullable: true, onDelete: "CASCADE")]
-    private ?Flight $flight = null;
+    private Flight $flight;
 
     #[ORM\ManyToOne(targetEntity: Hotel::class)]
     #[ORM\JoinColumn(nullable: true, onDelete: "CASCADE")]
-    private ?Hotel $hotel = null;
+    private Hotel $hotel;
 
     #[ORM\ManyToOne(targetEntity: Activity::class)]
     #[ORM\JoinColumn(nullable: true, onDelete: "CASCADE")]
-    private ?Activity $activity = null;
+    private Activity $activity;
 
     // Getter methods
     public function getComboDetailId(): int
@@ -41,17 +40,17 @@ class ComboDetail
         return $this->combo;
     }
 
-    public function getFlight(): ?Flight
+    public function getFlight(): Flight
     {
         return $this->flight;
     }
 
-    public function getHotel(): ?Hotel
+    public function getHotel(): Hotel
     {
         return $this->hotel;
     }
 
-    public function getActivity(): ?Activity
+    public function getActivity(): Activity
     {
         return $this->activity;
     }

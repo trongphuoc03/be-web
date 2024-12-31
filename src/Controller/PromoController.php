@@ -36,7 +36,7 @@ class PromoController extends AbstractController
         );
         $promo = $this->promoService->createPromo($dto);
 
-        return $this->json(new PromoResponseDTO($promo), Response::HTTP_CREATED);
+        return $this->json((new PromoResponseDTO($promo))->toArray(), Response::HTTP_CREATED);
     }
 
     #[Route('/promos/bulk', methods: ['GET'])]
@@ -86,7 +86,7 @@ class PromoController extends AbstractController
 
         $promo = $this->promoService->updatePromo($id, $dto);
 
-        return $this->json(new PromoResponseDTO($promo));
+        return $this->json((new PromoResponseDTO($promo))->toArray());
     }
 
     #[Route(self::PROMO_ROUTE, methods: ['DELETE'])]

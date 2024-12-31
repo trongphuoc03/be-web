@@ -6,7 +6,6 @@ use App\Service\JWTService;
 use App\DTO\Request\User\CreateUserDTO;
 use App\DTO\Request\User\UpdateUserDTO;
 use App\DTO\Response\User\UserResponseDTO;
-use App\Entity\User;
 use App\Enum\UserRole;
 use App\Service\UserService;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -39,7 +38,10 @@ class UserController extends AbstractController
     #[Route('/users/bulk', methods: ['GET'])]
     public function getAllUsers(Request $request): JsonResponse
     {
-        $this->checkAdminRole($request);
+        $check = $this->checkAdminRole($request);
+        if (!$check) {
+            return $this->json(['message' => 'Không đủ quyền'], Response::HTTP_UNAUTHORIZED);
+        }
         $users = $this->userService->getAllUsers();
         $response = [];
 
@@ -53,12 +55,33 @@ class UserController extends AbstractController
     private const USER_ROUTE = '/users/{id}';
 
     #[Route(self::USER_ROUTE, methods: ['GET'])]
-    public function getUserById(int $id): JsonResponse
+    public function getUserById(Request $request ,int $id): JsonResponse
     {
+        $check = $this->checkAdminRole($request);
+        if (!$check) {
+            return $this->json(['message' => 'Không đủ quyền'], Response::HTTP_UNAUTHORIZED);
+        }
         $user = $this->userService->getUserById($id);
 
         if (!$user) {
-            return $this->json(['message' => 'User not found'], Response::HTTP_NOT_FOUND);
+            return $this->json(['message' => 'Không tìm thấy người dùng'], Response::HTTP_NOT_FOUND);
+        }
+
+        return $this->json((new UserResponseDTO($user))->toArray());
+    }
+
+    #[Route('/users', methods: ['GET'])]
+    public function getMe(Request $request): JsonResponse
+    {
+        list($token,$check) = $this->checkAuthor($request);
+        if (!$check) {
+            return $this->json(['message' => 'Bạn cần đăng nhập trước'], Response::HTTP_FORBIDDEN);
+        }
+        $id = $this->jwtService->getIdFromToken($token);
+        $user = $this->userService->getUserById($id);
+
+        if (!$user) {
+            return $this->json(['message' => 'Không tìm thấy người dùng'], Response::HTTP_NOT_FOUND);
         }
 
         return $this->json((new UserResponseDTO($user))->toArray());
@@ -67,15 +90,30 @@ class UserController extends AbstractController
     #[Route(self::USER_ROUTE, methods: ['PATCH'])]
     public function updateUser(int $id, Request $request): JsonResponse
     {
+        [$token, $isAuthenized] = $this->checkAuthor($request);
+        if (!$isAuthenized) {
+            return $this->json(['message' => 'Bạn cần đăng nhập trước'], Response::HTTP_FORBIDDEN);
+        }
+
+        $isAdmin = $this->checkAdminRole($request);
+        $userId = $this->jwtService->getIdFromToken($token);
+
+        if (!$isAdmin && $userId != $id) {
+            return $this->json(['message' => 'Không đủ quyền'], Response::HTTP_UNAUTHORIZED);
+        }
         $data = json_decode($request->getContent(), true);
         $user = $this->userService->getUserById($id);
+        $role = isset($data['role']) ? UserRole::from($data['role']) : $user->getRole();
+        if (!$isAdmin) {
+            $role = $user->getRole();
+        }
         $dto = new UpdateUserDTO(
-            username: $data['username'] ?? null,
-            password: $data['password'] ?? null,
-            email: $data['email'] ?? null,
-            phone: $data['phone'] ?? null,
-            address: $data['address'] ?? null,
-            role: $data['role'] ?? null
+            username: $data['username'] ?? $user->getUsername(),
+            password: $data['password'] ?? $user->getPassword(),
+            email: $data['email'] ?? $user->getEmail(),
+            phone: $data['phone'] ?? $user->getPhone(),
+            address: $data['address'] ?? $user->getAddress(),
+            role: $role->value
         );
 
         $user = $this->userService->updateUser($id, $dto);
@@ -84,11 +122,22 @@ class UserController extends AbstractController
     }
 
     #[Route(self::USER_ROUTE, methods: ['DELETE'])]
-    public function deleteUser(int $id): JsonResponse
+    public function deleteUser(int $id, Request $request): JsonResponse
     {
+        list($token, $isAuthenized) = $this->checkAuthor($request);
+        if (!$isAuthenized) {
+            return $this->json(['message' => 'Bạn cần đăng nhập trước'], Response::HTTP_FORBIDDEN);
+        }
+
+        $isAdmin = $this->checkAdminRole($request);
+        $userId = $this->jwtService->getIdFromToken($token);
+
+        if (!$isAdmin && $userId != $id) {
+            return $this->json(['message' => 'Không đủ quyền'], Response::HTTP_UNAUTHORIZED);
+        }
         $this->userService->deleteUser($id);
 
-        return $this->json(['message' => 'User deleted successfully'], Response::HTTP_OK);
+        return $this->json(['message' => 'Xóa người dùng thành công'], Response::HTTP_OK);
     }
 
     #[Route('/login', methods: ['POST'])]
@@ -114,26 +163,32 @@ class UserController extends AbstractController
 
         // Trả về token
         return $this->json([
-            'message' => 'Login successful',
+            'message' => 'Đăng nhập thành công',
             'token' => $token,
         ]);
     }
 
     private function checkAdminRole(Request $request)
     {
-       // Lấy header Authorization
-       $authorizationHeader = $request->headers->get('Authorization');
-        
-       // Kiểm tra nếu không có header hoặc header không đúng định dạng
-       if (!$authorizationHeader || !preg_match('/Bearer\s(\S+)/', $authorizationHeader, $matches)) {
-           throw new \Exception ('Authorization header is missing or invalid', Response::HTTP_UNAUTHORIZED);
-       }
        // Tách token từ header
-       $token = $matches[1];
+       list($token, $check) = $this->checkAuthor($request);
 
        // Kiểm tra role
        if (!$this->jwtService->isAdmin($token)) {
-           throw new \Exception ('Unauthorized', Response::HTTP_UNAUTHORIZED);
+            $check = false;
        }
+       return $check;
+    }
+    
+
+    private function checkAuthor(Request $request){
+        $authorizationHeader = $request->headers->get('Authorization');
+        $check = true;
+       // Kiểm tra nếu không có header hoặc header không đúng định dạng
+       if (!$authorizationHeader || !preg_match('/Bearer\s(\S+)/', $authorizationHeader, $matches)) {
+            $check = false;
+       }
+
+       return [$matches[1], $check];
     }
 }

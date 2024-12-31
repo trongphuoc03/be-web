@@ -5,7 +5,7 @@ namespace App\Entity;
 use Doctrine\ORM\Mapping as ORM;
 use App\Enum\RatedType;
 use ApiPlatform\Metadata\ApiResource;
-#[ApiResource] // Kích hoạt API Platform cho Entity này
+ // Kích hoạt API Platform cho Entity này
 #[ORM\Entity]
 #[ORM\Table(name: "feedback")]
 class Feedback

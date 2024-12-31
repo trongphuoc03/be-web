@@ -4,7 +4,11 @@ namespace App\Controller;
 
 use App\DTO\Request\ComboDetail\CreateComboDetailDTO;
 use App\DTO\Request\ComboDetail\UpdateComboDetailDTO;
+use App\DTO\Response\Activity\ActivityResponseDTO;
+use App\DTO\Response\Combo\ComboResponseDTO;
 use App\DTO\Response\ComboDetail\ComboDetailResponseDTO;
+use App\DTO\Response\Flight\FlightResponseDTO;
+use App\DTO\Response\Hotel\HotelResponseDTO;
 use App\Service\ComboDetailService;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -25,7 +29,13 @@ class ComboDetailController extends AbstractController
         $response = [];
 
         foreach ($comboDetails as $comboDetail) {
-            $response[] = (new ComboDetailResponseDTO($comboDetail))->toArray();
+            $response[] = [
+                'comboDetailId' => $comboDetail->getComboDetailId(),
+                'combo' => $comboDetail->getCombo() ? (new ComboResponseDTO($comboDetail->getCombo()))->toArray() : null,
+                'flight' => $comboDetail ? (new FlightResponseDTO($comboDetail->getFlight()))->toArray() : null,
+                'hotel' => $comboDetail ? (new HotelResponseDTO($comboDetail->getHotel()))->toArray() : null,
+                'activity' => $comboDetail ? (new ActivityResponseDTO($comboDetail->getActivity()))->toArray() : null,
+            ];
         }
 
         return $this->json($response);
@@ -39,7 +49,13 @@ class ComboDetailController extends AbstractController
             return $this->json(['message' => 'Combo Detail not found'], Response::HTTP_NOT_FOUND);
         }
 
-        return $this->json(new ComboDetailResponseDTO($comboDetail));
+        return $this->json([
+                'comboDetailId' => $comboDetail->getComboDetailId(),
+                'combo' => $comboDetail->getCombo() ? (new ComboResponseDTO($comboDetail->getCombo()))->toArray() : null,
+                'flight' => $comboDetail ? (new FlightResponseDTO($comboDetail->getFlight()))->toArray() : null,
+                'hotel' => $comboDetail ? (new HotelResponseDTO($comboDetail->getHotel()))->toArray() : null,
+                'activity' => $comboDetail ? (new ActivityResponseDTO($comboDetail->getActivity()))->toArray() : null,
+            ]);
     }
     #[Route(self::COMBO_DETAIL_ROUTE, methods: ['PATCH'])]
     public function update(int $id, Request $request): JsonResponse
@@ -53,7 +69,13 @@ class ComboDetailController extends AbstractController
 
         $comboDetail = $this->comboDetailService->updateComboDetail($id, $dto);
 
-        return $this->json(new ComboDetailResponseDTO($comboDetail));
+        return $this->json([
+                'comboDetailId' => $comboDetail->getComboDetailId(),
+                'combo' => $comboDetail->getCombo() ? (new ComboResponseDTO($comboDetail->getCombo()))->toArray() : null,
+                'flight' => $comboDetail ? (new FlightResponseDTO($comboDetail->getFlight()))->toArray() : null,
+                'hotel' => $comboDetail ? (new HotelResponseDTO($comboDetail->getHotel()))->toArray() : null,
+                'activity' => $comboDetail ? (new ActivityResponseDTO($comboDetail->getActivity()))->toArray() : null,
+            ]);
     }
     #[Route(self::COMBO_DETAIL_ROUTE, methods: ['DELETE'])]
     public function delete(int $id, Request $request): JsonResponse
@@ -64,7 +86,7 @@ class ComboDetailController extends AbstractController
         }
         $this->comboDetailService->deleteComboDetail($id);
 
-        return $this->json(['message' => 'Combo Detail deleted successfully'], Response::HTTP_OK);
+        return $this->json(['message' => 'Xóa chi tiết combo thành công'], Response::HTTP_OK);
     }
 
     private function checkAdminRole(Request $request)

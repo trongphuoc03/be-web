@@ -21,7 +21,6 @@ class UpdateUserDTO
 
     public ?string $address = null;
 
-    #[Assert\Choice(choices: ['Admin', 'User', 'Silver', 'Gold'], message: 'Invalid role')]
     public ?string $role = null;
 
     public function __construct(?string $username, ?string $password, ?string $email, ?string $phone, ?string $address, ?string $role)

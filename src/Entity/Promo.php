@@ -5,7 +5,7 @@ namespace App\Entity;
 use Doctrine\ORM\Mapping as ORM;
 use App\Enum\PromoCondition;
 use ApiPlatform\Metadata\ApiResource;
-#[ApiResource] // Kích hoạt API Platform cho Entity này
+ // Kích hoạt API Platform cho Entity này
 #[ORM\Entity]
 #[ORM\Table(name: "promo")]
 class Promo
@@ -17,6 +17,9 @@ class Promo
 
     #[ORM\Column(type: 'string', length: 100)]
     private string $name;
+
+    #[ORM\Column(type: "string")]
+    private string $imgUrl;
 
     #[ORM\Column(type: 'text', nullable: true)]
     private ?string $description = null;
@@ -45,6 +48,11 @@ class Promo
     public function getName(): string
     {
         return $this->name;
+    }
+
+    public function getImgUrl(): string
+    {
+        return $this->imgUrl;
     }
 
     public function getDescription(): ?string
@@ -81,6 +89,11 @@ class Promo
     public function setName(string $name): void
     {
         $this->name = $name;
+    }
+
+    public function setImgUrl(string $imgUrl): void
+    {
+        $this->imgUrl = $imgUrl;
     }
 
     public function setDescription(?string $description): void
