@@ -2,6 +2,7 @@
 
 namespace App\Controller;
 
+use App\Service\FileUploader;
 use App\Service\JWTService;
 use App\DTO\Request\Activity\CreateActivityDTO;
 use App\DTO\Request\Activity\UpdateActivityDTO;
@@ -15,7 +16,7 @@ use Symfony\Component\Routing\Annotation\Route;
 
 class ActivityController extends AbstractController
 {
-    public function __construct(private ActivityService $activityService, private JWTService $jWTService) {}
+    public function __construct(private ActivityService $activityService, private JWTService $jWTService, private FileUploader $fileUploader) {}
 
     #[Route('/activities', methods: ['POST'])]
     public function create(Request $request): JsonResponse
@@ -25,6 +26,12 @@ class ActivityController extends AbstractController
             return $this->json(['message' => 'Không đủ quyền'], Response::HTTP_UNAUTHORIZED);
         }
         $data = json_decode($request->getContent(), true);
+        $file = $request->files->get('file');
+
+        if (!$file) {
+            return $this->json(['error' => 'Không tìm thấy file'], Response::HTTP_BAD_REQUEST);
+        }
+        $fileName = $this->fileUploader->upload($file);
         $dto = new CreateActivityDTO(
             name: $data['name'],
             emptySlot: $data['emptySlot'],
