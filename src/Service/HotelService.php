@@ -15,6 +15,7 @@ class HotelService
     {
         $hotel = new Hotel();
         $hotel->setName($hotelDTO->getName());
+        $hotel->setImgUrl($hotelDTO->getImgUrl());
         $hotel->setLocation($hotelDTO->getLocation());
         $hotel->setPhone($hotelDTO->getPhone());
         $hotel->setEmptyRoom($hotelDTO->getEmptyRoom());

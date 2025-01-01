@@ -16,6 +16,7 @@ class PromoService
         $promo = new Promo();
         // Assuming CreatePromoDTO has methods to get the necessary data
         $promo->setName($promoDTO->getName());
+        $promo->setImgUrl($promoDTO->getImgUrl());
         $promo->setDescription($promoDTO->getDescription());
         $promo->setDiscount($promoDTO->getDiscount());
         $promo->setCreatedDate();

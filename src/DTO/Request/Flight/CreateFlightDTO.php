@@ -10,6 +10,7 @@ class CreateFlightDTO
     #[Assert\Length(max: 100)]
     public string $brand;
 
+    public string $imgUrl;
     #[Assert\NotBlank]
     #[Assert\PositiveOrZero]
     public int $emptySlot;
@@ -33,9 +34,10 @@ class CreateFlightDTO
     #[Assert\PositiveOrZero]
     public float $price;
 
-    public function __construct(string $brand, int $emptySlot, \DateTimeInterface $startTime, \DateTimeInterface $endTime, string $startLocation, string $endLocation, float $price)
+    public function __construct(string $brand, string $imgUrl, int $emptySlot, \DateTimeInterface $startTime, \DateTimeInterface $endTime, string $startLocation, string $endLocation, float $price)
     {
         $this->brand = $brand;
+        $this->imgUrl = $imgUrl;
         $this->emptySlot = $emptySlot;
         $this->startTime = $startTime;
         $this->endTime = $endTime;
@@ -47,6 +49,11 @@ class CreateFlightDTO
     public function getBrand(): string
     {
         return $this->brand;
+    }
+
+    public function getImgUrl(): string
+    {
+        return $this->imgUrl;
     }
 
     public function getEmptySlot(): int
@@ -82,6 +89,11 @@ class CreateFlightDTO
     public function setBrand(string $brand): void
     {
         $this->brand = $brand;
+    }
+
+    public function setImgUrl(string $imgUrl): void
+    {
+        $this->imgUrl = $imgUrl;
     }
 
     public function setEmptySlot(int $emptySlot): void

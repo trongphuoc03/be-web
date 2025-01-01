@@ -16,6 +16,7 @@ class FlightService
         $flight = new Flight();
         // Assuming CreateFlightDTO has methods to get the necessary data
         $flight->setBrand($flightDTO->getBrand());
+        $flight->setImgUrl($flightDTO->getImgUrl());
         $flight->setEmptySlot($flightDTO->getEmptySlot());
         $flight->setStartTime($flightDTO->getStartTime());
         $flight->setEndTime($flightDTO->getEndTime());

@@ -5,6 +5,7 @@ namespace App\Controller;
 use App\DTO\Request\Hotel\CreateHotelDTO;
 use App\DTO\Request\Hotel\UpdateHotelDTO;
 use App\DTO\Response\Hotel\HotelResponseDTO;
+use App\Service\FileUploader;
 use App\Service\HotelService;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -17,7 +18,7 @@ class HotelController extends AbstractController
 {
     private const HOTEL_ROUTE = '/hotels/{id}';
 
-    public function __construct(private HotelService $hotelService, private JWTService $jWTService) {}
+    public function __construct(private HotelService $hotelService, private JWTService $jWTService, private FileUploader $fileUploader) {}
 
     #[Route('/hotels', methods: ['POST'])]
     public function create(Request $request): JsonResponse
@@ -27,8 +28,15 @@ class HotelController extends AbstractController
             return $this->json(['message' => 'Không đủ quyền'], Response::HTTP_UNAUTHORIZED);
         }
         $data = json_decode($request->getContent(), true);
+        $file = $request->files->get('file');
+
+        if (!$file) {
+            return $this->json(['error' => 'Không tìm thấy file'], Response::HTTP_BAD_REQUEST);
+        }
+        $fileName = $this->fileUploader->upload($file);
         $dto = new CreateHotelDTO(
             name: $data['name'],
+            imgUrl: $fileName,
             location: $data['location'],
             phone: $data['phone'],
             emptyRoom: $data['emptyRoom'],

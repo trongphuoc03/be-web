@@ -14,6 +14,7 @@ class ActivityService
     {
         $activity = new Activity();
         $activity->setName($activityDTO->getName());
+        $activity->setImgUrl($activityDTO->getImgUrl());
         $activity->setDescription($activityDTO->getDescription());
         $activity->setEmptySlot($activityDTO->getEmptySlot());
         $activity->setLocation($activityDTO->getLocation());

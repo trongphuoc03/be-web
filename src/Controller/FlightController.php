@@ -5,6 +5,7 @@ namespace App\Controller;
 use App\DTO\Request\Flight\CreateFlightDTO;
 use App\DTO\Request\Flight\UpdateFlightDTO;
 use App\DTO\Response\Flight\FlightResponseDTO;
+use App\Service\FileUploader;
 use App\Service\FlightService;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -16,7 +17,7 @@ use DateTime;
 class FlightController extends AbstractController
 {
     private const FLIGHT_ROUTE = '/flights/{id}';
-    public function __construct(private FlightService $flightService, private JWTService $jWTService) {}
+    public function __construct(private FlightService $flightService, private JWTService $jWTService, private FileUploader $fileUploader) {}
 
     #[Route('/flights', methods: ['POST'])]
     public function create(Request $request): JsonResponse
@@ -35,9 +36,16 @@ class FlightController extends AbstractController
         if (!$startTime || !$endTime) {
             return $this->json(['message' => 'Thời gian không hợp lệ'], Response::HTTP_BAD_REQUEST);
         }
+        $file = $request->files->get('file');
+
+        if (!$file) {
+            return $this->json(['error' => 'Không tìm thấy file'], Response::HTTP_BAD_REQUEST);
+        }
+        $fileName = $this->fileUploader->upload($file);
 
         $dto = new CreateFlightDTO(
             brand: $data['brand'],
+            imgUrl: $fileName,
             emptySlot: (int)$data['emptySlot'],
             startTime: $startTime,
             endTime: $endTime,

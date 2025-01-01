@@ -5,6 +5,7 @@ namespace App\Controller;
 use App\DTO\Request\Promo\CreatePromoDTO;
 use App\DTO\Request\Promo\UpdatePromoDTO;
 use App\DTO\Response\Promo\PromoResponseDTO;
+use App\Service\FileUploader;
 use App\Service\PromoService;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -15,7 +16,7 @@ use App\Service\JWTService;
 use DateTime;
 class PromoController extends AbstractController
 {
-    public function __construct(private PromoService $promoService, private JWTService $jWTService) {}
+    public function __construct(private PromoService $promoService, private JWTService $jWTService, private FileUploader $fileUploader) {}
 
     #[Route('/promos', methods: ['POST'])]
     public function create(Request $request): JsonResponse
@@ -26,8 +27,15 @@ class PromoController extends AbstractController
         }
         $data = json_decode($request->getContent(), true);
         $expiredDate = DateTime::createFromFormat('Y-m-d H:i:s', $data['expiredDate']);
+        $file = $request->files->get('file');
+
+        if (!$file) {
+            return $this->json(['error' => 'Không tìm thấy file'], Response::HTTP_BAD_REQUEST);
+        }
+        $fileName = $this->fileUploader->upload($file);
         $dto = new CreatePromoDTO(
             name: $data['name'],
+            imgUrl: $fileName,
             description: $data['description'],
             discount: $data['discount'],
             expiredDate: $expiredDate,

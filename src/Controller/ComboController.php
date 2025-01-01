@@ -13,6 +13,7 @@ use App\DTO\Response\Hotel\HotelResponseDTO;
 use App\Service\ActivityService;
 use App\Service\ComboDetailService;
 use App\Service\ComboService;
+use App\Service\FileUploader;
 use App\Service\FlightService;
 use App\Service\HotelService;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -30,7 +31,8 @@ class ComboController extends AbstractController
         private ComboDetailService $comboDetailService,
         private FlightService $flightService,
         private HotelService $hotelService,
-        private ActivityService $activityService
+        private ActivityService $activityService,
+        private FileUploader $fileUploader,
     ) {}
 
     #[Route('/combos', methods: ['POST'])]
@@ -41,7 +43,13 @@ class ComboController extends AbstractController
             return $this->json(['message' => 'Không đủ quyền'], Response::HTTP_UNAUTHORIZED);
         }
         $data = json_decode($request->getContent(), true);
-        $dto = new CreateComboDTO(name: $data['name'], description: $data['description'], price: $data['price']);
+        $file = $request->files->get('file');
+
+        if (!$file) {
+            return $this->json(['error' => 'Không tìm thấy file'], Response::HTTP_BAD_REQUEST);
+        }
+        $fileName = $this->fileUploader->upload($file);
+        $dto = new CreateComboDTO(name: $data['name'], imgUrl: $fileName, description: $data['description'], price: $data['price']);
         $combo = $this->comboService->createCombo($dto);
         $flight = $this->flightService->getFlightById($data['flightId']);
         $hotel = $this->hotelService->getHotelById($data['hotelId']);
@@ -51,6 +59,7 @@ class ComboController extends AbstractController
         $response = [
             'comboId' => $combo->getComboId(),
             'name' => $combo->getName(),
+            'imgUrl' => $combo->getImgUrl(),
             'description' => $combo->getDescription(),
             'price' => $combo->getPrice(),
             'flight' => (new FlightResponseDTO($flight))->toArray(),
@@ -71,6 +80,7 @@ class ComboController extends AbstractController
             $response[] = [
                 'comboId' => $combo->getComboId(),
                 'name' => $combo->getName(),
+                'imgUrl' => $combo->getImgUrl(),
                 'description' => $combo->getDescription(),
                 'price' => $combo->getPrice(),
                 'flight' => $comboDetail ? (new FlightResponseDTO($comboDetail->getFlight()))->toArray() : null,
@@ -94,6 +104,7 @@ class ComboController extends AbstractController
         return $this->json([
                 'comboId' => $combo->getComboId(),
                 'name' => $combo->getName(),
+                'imgUrl' => $combo->getImgUrl(),
                 'description' => $combo->getDescription(),
                 'price' => $combo->getPrice(),
                 'flight' => $comboDetail ? (new FlightResponseDTO($comboDetail->getFlight()))->toArray() : null,
@@ -117,6 +128,7 @@ class ComboController extends AbstractController
         return $this->json([
                 'comboId' => $combo->getComboId(),
                 'name' => $combo->getName(),
+                'imgUrl' => $combo->getImgUrl(),
                 'description' => $combo->getDescription(),
                 'price' => $combo->getPrice(),
                 'flight' => $comboDetail ? (new FlightResponseDTO($comboDetail->getFlight()))->toArray() : null,

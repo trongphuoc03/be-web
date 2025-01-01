@@ -16,6 +16,7 @@ class ComboService
         $combo = new Combo();
         // Assuming Combo entity has setName and setDescription methods
         $combo->setName($comboDTO->getName());
+        $combo->setImgUrl($comboDTO->getImgUrl());
         $combo->setDescription($comboDTO->getDescription());
         $combo->setPrice($comboDTO->getPrice());
         

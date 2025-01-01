@@ -33,6 +33,7 @@ class ActivityController extends AbstractController
         }
         $fileName = $this->fileUploader->upload($file);
         $dto = new CreateActivityDTO(
+            imgUrl: $fileName,
             name: $data['name'],
             emptySlot: $data['emptySlot'],
             location: $data['location'],

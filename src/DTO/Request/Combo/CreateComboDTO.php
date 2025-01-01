@@ -10,15 +10,17 @@ class CreateComboDTO
     #[Assert\Length(max: 100)]
     public string $name;
 
+    public string $imgUrl;
     public ?string $description = null;
 
     #[Assert\NotBlank]
     #[Assert\PositiveOrZero]
     public float $price;
 
-    public function __construct(string $name, ?string $description, float $price)
+    public function __construct(string $name, ?string $description, float $price, string $imgUrl)
     {
         $this->name = $name;
+        $this->imgUrl = $imgUrl;
         $this->description = $description;
         $this->price = $price;
     }
@@ -26,6 +28,11 @@ class CreateComboDTO
     public function getName(): string
     {
         return $this->name;
+    }
+
+    public function getImgUrl(): string
+    {
+        return $this->imgUrl;
     }
 
     public function getDescription(): ?string
@@ -41,6 +48,11 @@ class CreateComboDTO
     public function setName(string $name): void
     {
         $this->name = $name;
+    }
+
+    public function setImgUrl(string $imgUrl): void
+    {
+        $this->imgUrl = $imgUrl;
     }
 
     public function setDescription(?string $description): void

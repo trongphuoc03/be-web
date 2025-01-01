@@ -10,6 +10,8 @@ class CreateActivityDTO
     #[Assert\Length(max: 100)]
     public string $name;
 
+    public string $imgUrl;
+
     #[Assert\NotBlank]
     #[Assert\PositiveOrZero]
     public int $emptySlot;
@@ -24,9 +26,10 @@ class CreateActivityDTO
     #[Assert\PositiveOrZero]
     public float $price;
 
-    public function __construct(string $name, int $emptySlot, string $location, ?string $description, float $price)
+    public function __construct(string $name, int $emptySlot, string $location, ?string $description, float $price, string $imgUrl)
     {
         $this->name = $name;
+        $this->imgUrl = $imgUrl;
         $this->emptySlot = $emptySlot;
         $this->location = $location;
         $this->description = $description;
@@ -36,6 +39,11 @@ class CreateActivityDTO
     public function getName(): string
     {
         return $this->name;
+    }
+
+    public function getImgUrl(): string
+    {
+        return $this->imgUrl;
     }
 
     public function getEmptySlot(): int
@@ -63,6 +71,11 @@ class CreateActivityDTO
         $this->name = $name;
     }
 
+    public function setImgUrl(string $imgUrl): void
+    {
+        $this->imgUrl = $imgUrl;
+    }
+
     public function setEmptySlot(int $emptySlot): void
     {
         $this->emptySlot = $emptySlot;
@@ -87,6 +100,7 @@ class CreateActivityDTO
     {
         return [
             'name' => $this->name,
+            'imgUrl' => $this->imgUrl,
             'emptySlot' => $this->emptySlot,
             'location' => $this->location,
             'description' => $this->description,

@@ -9,6 +9,7 @@ class CreateHotelDTO
     #[Assert\NotBlank]
     #[Assert\Length(max: 100)]
     public string $name;
+    public string $imgUrl;
 
     #[Assert\NotBlank]
     #[Assert\Length(max: 100)]
@@ -27,9 +28,10 @@ class CreateHotelDTO
 
     public ?string $description = null;
 
-    public function __construct(string $name, string $location, ?string $phone, int $emptyRoom, float $price, ?string $description)
+    public function __construct(string $name, string $imgUrl, string $location, ?string $phone, int $emptyRoom, float $price, ?string $description)
     {
         $this->name = $name;
+        $this->imgUrl = $imgUrl;
         $this->location = $location;
         $this->phone = $phone;
         $this->emptyRoom = $emptyRoom;
@@ -40,6 +42,11 @@ class CreateHotelDTO
     public function getName(): string
     {
         return $this->name;
+    }
+
+    public function getImgUrl(): string
+    {
+        return $this->imgUrl;
     }
 
     public function getLocation(): string
@@ -72,6 +79,11 @@ class CreateHotelDTO
         $this->name = $name;
     }
 
+    public function setImgUrl(string $imgUrl): void
+    {
+        $this->imgUrl = $imgUrl;
+    }
+
     public function setLocation(string $location): void
     {
         $this->location = $location;
@@ -101,6 +113,7 @@ class CreateHotelDTO
     {
         return [
             'name' => $this->name,
+            'imgUrl' => $this->imgUrl,
             'location' => $this->location,
             'phone' => $this->phone,
             'emptyRoom' => $this->emptyRoom,

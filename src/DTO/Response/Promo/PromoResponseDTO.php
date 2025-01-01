@@ -8,6 +8,7 @@ class PromoResponseDTO
 {
     public int $id;
     public string $name;
+    public string $imgUrl;
     public ?string $description;
     public float $discount;
     public \DateTimeInterface $createdDate;
@@ -20,6 +21,7 @@ class PromoResponseDTO
     {
         $this->id = $promo->getPromoId(); // assuming getPromoId() exists
         $this->name = $promo->getName(); // assuming getName() exists
+        $this->imgUrl = $promo->getImgUrl(); // assuming getImgUrl() exists
         $this->description = $promo->getDescription(); // assuming getDescription() exists
         $this->discount = $promo->getDiscount(); // assuming getDiscount() exists
         $this->createdDate = $promo->getCreatedDate(); // assuming getCreatedDate() exists
@@ -34,6 +36,7 @@ class PromoResponseDTO
         return [
             'id' => $this->id,
             'name' => $this->name,
+            'imgUrl' => $this->imgUrl,
             'description' => $this->description,
             'discount' => $this->discount,
             'createdDate' => $this->createdDate->format('Y-m-d H:i:s'), // formatting DateTime for JSON

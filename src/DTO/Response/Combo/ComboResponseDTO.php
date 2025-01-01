@@ -8,6 +8,7 @@ class ComboResponseDTO
 {
     public int $id;
     public string $name;
+    public string $imgUrl;
     public ?string $description;
     public float $price;
 
@@ -16,6 +17,7 @@ class ComboResponseDTO
     {
         $this->id = $combo->getComboId(); // assuming getComboId() exists
         $this->name = $combo->getName();
+        $this->imgUrl = $combo->getImgUrl();
         $this->description = $combo->getDescription();
         $this->price = $combo->getPrice();
     }
@@ -26,6 +28,7 @@ class ComboResponseDTO
         return [
             'id' => $this->id,
             'name' => $this->name,
+            'imgUrl' => $this->imgUrl,
             'description' => $this->description,
             'price' => $this->price,
         ];

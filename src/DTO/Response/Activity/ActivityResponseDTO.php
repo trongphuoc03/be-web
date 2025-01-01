@@ -8,6 +8,7 @@ class ActivityResponseDTO
 {
     private int $activityId;
     private string $name;
+    private string $imgUrl;
     private int $emptySlot;
     private string $location;
     private string $description;
@@ -17,6 +18,7 @@ class ActivityResponseDTO
     {
         $this->activityId = $activity->getActivityId();
         $this->name = $activity->getName();
+        $this->imgUrl = $activity->getImgUrl();
         $this->emptySlot = $activity->getEmptySlot();
         $this->location = $activity->getLocation();
         $this->description = $activity->getDescription();
@@ -28,6 +30,7 @@ class ActivityResponseDTO
         return [
             'activityId' => $this->activityId,
             'name' => $this->name,
+            'imgUrl' => $this->imgUrl,
             'emptySlot' => $this->emptySlot,
             'location' => $this->location,
             'description' => $this->description,

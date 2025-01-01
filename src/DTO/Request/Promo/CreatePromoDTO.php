@@ -10,6 +10,8 @@ class CreatePromoDTO
     #[Assert\Length(max: 100)]
     public string $name;
 
+    public string $imgUrl;
+
     public ?string $description = null;
 
     #[Assert\NotBlank]
@@ -27,9 +29,10 @@ class CreatePromoDTO
     #[Assert\Choice(choices: ['Public', 'Silver', 'Gold'])]
     public string $conditions;
 
-    public function __construct(string $name, ?string $description, float $discount, \DateTimeInterface $expiredDate, int $amount, string $conditions)
+    public function __construct(string $name, string $imgUrl, ?string $description, float $discount, \DateTimeInterface $expiredDate, int $amount, string $conditions)
     {
         $this->name = $name;
+        $this->imgUrl = $imgUrl;
         $this->description = $description;
         $this->discount = $discount;
         $this->createdDate = new \DateTime();
@@ -41,6 +44,11 @@ class CreatePromoDTO
     public function getName(): string
     {
         return $this->name;
+    }
+
+    public function getImgUrl(): string
+    {
+        return $this->imgUrl;
     }
 
     public function getDescription(): ?string
@@ -75,6 +83,11 @@ class CreatePromoDTO
     public function setName(string $name): void
     {
         $this->name = $name;
+    }
+
+    public function setImgUrl(string $imgUrl): void
+    {
+        $this->imgUrl = $imgUrl;
     }
 
     public function setDescription(?string $description): void
