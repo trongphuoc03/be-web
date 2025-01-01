@@ -25,8 +25,8 @@ class PromoController extends AbstractController
         if (!$check) {
             return $this->json(['message' => 'Không đủ quyền'], Response::HTTP_UNAUTHORIZED);
         }
-        $data = json_decode($request->getContent(), true);
-        $expiredDate = DateTime::createFromFormat('Y-m-d H:i:s', $data['expiredDate']);
+        $data = $request->request;
+        $expiredDate = DateTime::createFromFormat('Y-m-d H:i:s', $data->get('expiredDate'));
         $file = $request->files->get('file');
 
         if (!$file) {
@@ -34,13 +34,13 @@ class PromoController extends AbstractController
         }
         $fileName = $this->fileUploader->upload($file);
         $dto = new CreatePromoDTO(
-            name: $data['name'],
+            name: $data->get('name'),
             imgUrl: $fileName,
-            description: $data['description'],
-            discount: $data['discount'],
+            description: $data->get('description'),
+            discount: $data->get('discount'),
             expiredDate: $expiredDate,
-            amount: $data['amount'],
-            conditions: $data['conditions']
+            amount: $data->get('amount'),
+            conditions: $data->get('conditions')
         );
         $promo = $this->promoService->createPromo($dto);
 

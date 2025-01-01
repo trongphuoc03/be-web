@@ -79,14 +79,14 @@ class HotelController extends AbstractController
         if (!$check) {
             return $this->json(['message' => 'Không đủ quyền'], Response::HTTP_UNAUTHORIZED);
         }
-        $data = json_decode($request->getContent(), true);
+        $data = $request->request;
         $dto = new UpdateHotelDTO(
-            name: $data['name'],
-            location: $data['location'],
-            phone: $data['phone'],
-            emptyRoom: $data['emptyRoom'],
-            price: $data['price'],
-            description: $data['description']
+            name: $data->get('name'),
+            location: $data->get('location'),
+            phone: $data->get('phone'),
+            emptyRoom: $data->get('emptyRoom'),
+            price: $data->get('price'),
+            description: $data->get('description')
         );
 
         $hotel = $this->hotelService->updateHotel($id, $dto);

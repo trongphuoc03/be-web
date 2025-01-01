@@ -25,7 +25,7 @@ services:
         arguments:
             $secretKey: '%env(JWT_SECRET_KEY)%'  # Chèn secret key từ .env.local
 
-     App\Service\FileUploader:
+    App\Service\FileUploader:
         arguments:
             $targetDirectory: '%images_directory%'
     # add more service definitions when explicit configuration is needed

@@ -20,8 +20,8 @@ class FileUploader
 
         // Di chuyển file vào thư mục đích
         $file->move($this->targetDirectory, $newFilename);
-
+        $url = 'http://localhost:3000/images/' . $newFilename;
         // Trả về tên file
-        return $newFilename;
+        return $url;
     }
 }

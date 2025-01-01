@@ -42,18 +42,18 @@ class ComboController extends AbstractController
         if (!$check) {
             return $this->json(['message' => 'Không đủ quyền'], Response::HTTP_UNAUTHORIZED);
         }
-        $data = json_decode($request->getContent(), true);
+        $data = $request->request;
         $file = $request->files->get('file');
 
         if (!$file) {
             return $this->json(['error' => 'Không tìm thấy file'], Response::HTTP_BAD_REQUEST);
         }
         $fileName = $this->fileUploader->upload($file);
-        $dto = new CreateComboDTO(name: $data['name'], imgUrl: $fileName, description: $data['description'], price: $data['price']);
+        $dto = new CreateComboDTO(name: $data->get('name'), imgUrl: $fileName, description: $data->get('description'), price: $data->get('price'));
         $combo = $this->comboService->createCombo($dto);
-        $flight = $this->flightService->getFlightById($data['flightId']);
-        $hotel = $this->hotelService->getHotelById($data['hotelId']);
-        $activity = $this->activityService->getActivityById($data['activityId']);
+        $flight = $this->flightService->getFlightById($data->get('flightId'));
+        $hotel = $this->hotelService->getHotelById($data->get('hotelId'));
+        $activity = $this->activityService->getActivityById($data->get('activityId'));
         $dto = new CreateComboDetailDTO(comboId: $combo, flightId: $flight, hotelId: $hotel, activityId: $activity);
         $this->comboDetailService->createComboDetail($dto);
         $response = [

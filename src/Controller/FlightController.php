@@ -92,17 +92,17 @@ class FlightController extends AbstractController
         if (!$check) {
             return $this->json(['message' => 'Không đủ quyền'], Response::HTTP_UNAUTHORIZED);
         }
-        $data = json_decode($request->getContent(), true);
-        $startTime = DateTime::createFromFormat('Y-m-d H:i:s', $data['startTime']);
-        $endTime = DateTime::createFromFormat('Y-m-d H:i:s', $data['endTime']);
+        $data = $request->request;
+        $startTime = DateTime::createFromFormat('Y-m-d H:i:s', $data->get('startTime'));
+        $endTime = DateTime::createFromFormat('Y-m-d H:i:s', $data->get('endTime'));
         $dto = new UpdateFlightDTO(
-            brand: $data['brand'],
-            emptySlot: $data['emptySlot'],
+            brand: $data->get('brand'),
+            emptySlot: $data->get('emptySlot'),
             startTime: $startTime,
             endTime: $endTime,
-            startLocation: $data['startLocation'],
-            endLocation: $data['endLocation'],
-            price: $data['price']
+            startLocation: $data->get('startLocation'),
+            endLocation: $data->get('endLocation'),
+            price: $data->get('price')
         );
 
         $flight = $this->flightService->updateFlight($id, $dto);

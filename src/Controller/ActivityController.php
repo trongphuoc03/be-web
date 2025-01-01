@@ -25,20 +25,20 @@ class ActivityController extends AbstractController
         if (!$check) {
             return $this->json(['message' => 'Không đủ quyền'], Response::HTTP_UNAUTHORIZED);
         }
-        $data = json_decode($request->getContent(), true);
+        $data = $request->request;
         $file = $request->files->get('file');
 
-        if (!$file) {
+        if (!$file){
             return $this->json(['error' => 'Không tìm thấy file'], Response::HTTP_BAD_REQUEST);
         }
         $fileName = $this->fileUploader->upload($file);
         $dto = new CreateActivityDTO(
             imgUrl: $fileName,
-            name: $data['name'],
-            emptySlot: $data['emptySlot'],
-            location: $data['location'],
-            description: $data['description'],
-            price: $data['price']
+            name: $data->get('name'),
+            emptySlot: $data->get('emptySlot'),
+            location: $data->get('emptySlot'),
+            description: $data->get('emptySlot'),
+            price: $data->get('emptySlot'),
         );
         
         $activity = $this->activityService->createActivity($dto);
