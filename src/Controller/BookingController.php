@@ -38,7 +38,10 @@ class BookingController extends AbstractController
     #[Route('/bookings', methods: ['POST'])]
     public function create(Request $request): JsonResponse
     {
-        $token = $this->checkAuthor($request);
+        list($token, $check) = $this->checkAuthor($request);
+        if (!$check) {
+            return $this->json(['message' => 'Đăng nhập trước'], Response::HTTP_UNAUTHORIZED);
+        }
         $userId = $this->jWTService->getIdFromToken($token);
         $data = json_decode($request->getContent(), true);
         $flight = $this->flightService->getFlightById($data['flightId'] ?? null);
@@ -47,7 +50,7 @@ class BookingController extends AbstractController
         $combo = $this->comboService->getComboById($data['comboId'] ?? null);
         $promo = $this->promoService->getPromoById($data['promoId'] ?? null);
         if (!$flight && !$hotel && !$activity && !$combo) {
-            return $this->json(['message' => 'Flight, hotel, activity or combo not found'], Response::HTTP_NOT_FOUND);
+            return $this->json(['message' => 'Phải chọn (flight, hotel, activity) hoặc combo'], Response::HTTP_NOT_FOUND);
         }
         if ($combo && ($flight || $hotel || $activity)) {
             return $this->json(['message' => 'Chỉ chọn (flight, hotel, activity) hoặc combo'], Response::HTTP_BAD_REQUEST);
@@ -57,12 +60,12 @@ class BookingController extends AbstractController
         } else {
             if ($hotel){
                 if (!$data['checkInDate'] || !$data['checkOutDate']) {
-                    return $this->json(['message' => 'Check in date and check out date are required'], Response::HTTP_BAD_REQUEST);
+                    return $this->json(['message' => 'Ngày nhận phòng và ngày trả phòng là bắt buộc'], Response::HTTP_BAD_REQUEST);
                 }
                 $checkInDate = new \DateTime($data['checkInDate']);
                 $checkOutDate = new \DateTime($data['checkOutDate']);
                 if ($checkInDate > $checkOutDate) {
-                    return $this->json(['message' => 'Check in date must be before check out date'], Response::HTTP_BAD_REQUEST);
+                    return $this->json(['message' => 'Ngày nhận phòng phải trước ngày trả phòng'], Response::HTTP_BAD_REQUEST);
                 }
                 $day = $checkOutDate->diff($checkInDate)->days;
             }
@@ -102,7 +105,10 @@ class BookingController extends AbstractController
     #[Route('/bookings/bulk', methods: ['GET'])]
     public function bulkRead(Request $request): JsonResponse
     {
-        $this->checkAdminRole($request);
+        $check = $this->checkAdminRole($request);
+        if (!$check) {
+            return $this->json(['message' => 'Không đủ quyền'], Response::HTTP_UNAUTHORIZED);
+        }
         $bookings = $this->bookingService->getAllBookings();
         $response = [];
 
@@ -115,21 +121,28 @@ class BookingController extends AbstractController
     #[Route(self::BOOKING_ROUTE, methods: ['GET'])]
     public function read(int $id, Request $request): JsonResponse
     {
-        $token = $this->checkAuthor($request);
+        list($token, $check) = $this->checkAuthor($request);
+        if (!$check) {
+            return $this->json(['message' => 'Đăng nhập trước'], Response::HTTP_UNAUTHORIZED);
+        }
+        $admin = $this->checkAdminRole($request);
         $booking = $this->bookingService->getBookingById($id);
         if (!$booking) {
-            return $this->json(['message' => 'Booking not found'], Response::HTTP_NOT_FOUND);
+            return $this->json(['message' => 'Không tìm thấy booking'], Response::HTTP_NOT_FOUND);
         }
         $result = (new BookingResponseDTO($booking))->toArray();
-        if (!$this->jWTService->isAdmin($token) || $result['userId'] === $this->jWTService->getIdFromToken($token)) {
+        if ($admin || $result['userId'] === $this->jWTService->getIdFromToken($token)) {
             return $this->json($result);
         }
-        return $this->json(['message' => 'Unauthorized'], Response::HTTP_UNAUTHORIZED);
+        return $this->json(['message' => 'Không đủ quyền'], Response::HTTP_UNAUTHORIZED);
     }
     #[Route(self::BOOKING_ROUTE, methods: ['PATCH'])]
     public function update(int $id, Request $request): JsonResponse
     {
-        $this->checkAdminRole($request);
+        $admin = $this->checkAdminRole($request);
+        if (!$admin) {
+            return $this->json(['message' => 'Không đủ quyền'], Response::HTTP_UNAUTHORIZED);
+        }
         $data = json_decode($request->getContent(), true);
         $dto = new UpdateBookingDTO(
             totalPrice: $data['totalPrice'] || null,
@@ -143,33 +156,36 @@ class BookingController extends AbstractController
     #[Route(self::BOOKING_ROUTE, methods: ['DELETE'])]
     public function delete(int $id, Request $request): JsonResponse
     {
-        $this->checkAdminRole($request);
+        $admin = $this->checkAdminRole($request);
+        if (!$admin) {
+            return $this->json(['message' => 'Không đủ quyền'], Response::HTTP_UNAUTHORIZED);
+        }
         $this->bookingService->deleteBooking($id);
 
-        return $this->json(['message' => 'Booking deleted successfully'], Response::HTTP_OK);
+        return $this->json(['message' => 'Xóa booking thành công'], Response::HTTP_OK);
     }
 
     private function checkAdminRole(Request $request)
     {
        // Tách token từ header
-       $token = $this->checkAuthor($request);
+       list($token, $check) = $this->checkAuthor($request);
 
        // Kiểm tra role
        if (!$this->jWTService->isAdmin($token)) {
-           throw new \Exception ('Unauthorized', Response::HTTP_UNAUTHORIZED);
-
+        $check = false;
        }
+        return $check;
     }
     
 
     private function checkAuthor(Request $request){
         $authorizationHeader = $request->headers->get('Authorization');
-        
+        $check = true;
        // Kiểm tra nếu không có header hoặc header không đúng định dạng
        if (!$authorizationHeader || !preg_match('/Bearer\s(\S+)/', $authorizationHeader, $matches)) {
-            throw new \Exception ('Authorization header is missing or invalid', Response::HTTP_UNAUTHORIZED);
+        $check = false;
        }
 
-       return $matches[1];
+       return [$matches[1], $check];
     }
 }

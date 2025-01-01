@@ -21,9 +21,14 @@ class FeedbackController extends AbstractController
     #[Route('/feedbacks', methods: ['POST'])]
     public function create(Request $request): JsonResponse
     {
+        list($token, $check) = $this->checkAuthor($request);
+        if (!$check) {
+            return $this->json(['message' => 'Đăng nhập trước'], Response::HTTP_UNAUTHORIZED);
+        }
+        $userId = $this->jWTService->getIdFromToken($token);
         $data = json_decode($request->getContent(), true);
         $dto = new CreateFeedbackDTO(
-            userId: $data['userId'],
+            userId: $userId,
             ratedType: $data['ratedType'],
             relatedId: $data['relatedId'],
             rating: $data['rating'],
@@ -59,7 +64,18 @@ class FeedbackController extends AbstractController
     #[Route(self::FEEDBACK_ROUTE, methods: ['PATCH'])]
     public function update(int $id, Request $request): JsonResponse
     {
-
+        list($token, $check) = $this->checkAuthor($request);
+        if (!$check) {
+            return $this->json(['message' => 'Đăng nhập trước'], Response::HTTP_UNAUTHORIZED);
+        }
+        $admin = $this->checkAdminRole($request);
+        $feedback = $this->feedbackService->getFeedbackById($id);
+        if (!$feedback) {
+            return $this->json(['message' => 'Không tìm thấy feedback'], Response::HTTP_NOT_FOUND);
+        }
+        if (!$admin || $feedback->getUser()->getId() !== $this->jWTService->getIdFromToken($token)) {
+            return $this->json(['message' => 'Không đủ quyền'], Response::HTTP_UNAUTHORIZED);
+        }
         $data = json_decode($request->getContent(), true);
         $dto = new UpdateFeedbackDTO(
             ratedType: $data['ratedType'],
@@ -78,25 +94,30 @@ class FeedbackController extends AbstractController
         
         $this->feedbackService->deleteFeedback($id);
 
-        return $this->json(['message' => 'Feedback deleted successfully'], Response::HTTP_OK);
+        return $this->json(['message' => 'Xóa feedback thành công'], Response::HTTP_OK);
     }
 
     private function checkAdminRole(Request $request)
     {
-       // Lấy header Authorization
-       $authorizationHeader = $request->headers->get('Authorization');
-       $check = true;
-       // Kiểm tra nếu không có header hoặc header không đúng định dạng
-       if (!$authorizationHeader || !preg_match('/Bearer\s(\S+)/', $authorizationHeader, $matches)) {
-           $check = false;
-       }
        // Tách token từ header
-       $token = $matches[1];
+       list($token, $check) = $this->checkAuthor($request);
 
        // Kiểm tra role
        if (!$this->jWTService->isAdmin($token)) {
-           $check = false;
+        $check = false;
        }
-       return $check;
+        return $check;
+    }
+    
+
+    private function checkAuthor(Request $request){
+        $authorizationHeader = $request->headers->get('Authorization');
+        $check = true;
+       // Kiểm tra nếu không có header hoặc header không đúng định dạng
+       if (!$authorizationHeader || !preg_match('/Bearer\s(\S+)/', $authorizationHeader, $matches)) {
+        $check = false;
+       }
+
+       return [$matches[1], $check];
     }
 }

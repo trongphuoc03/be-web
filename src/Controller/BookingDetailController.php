@@ -37,6 +37,10 @@ class BookingDetailController extends AbstractController
     #[Route(self::BOOKING_DETAIL_ROUTE, methods: ['GET'])]
     public function read(int $id, Request $request): JsonResponse
     {
+        $admin = $this->checkAdminRole($request);
+        if (!$admin) {
+            return $this->json(['message' => 'Không đủ quyền'], Response::HTTP_UNAUTHORIZED);
+        }
         $bookingDetail = $this->bookingDetailService->getBookingDetailById($id);
 
         if (!$bookingDetail) {

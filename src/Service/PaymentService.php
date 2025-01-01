@@ -24,6 +24,7 @@ class PaymentService
         $payment->setBooking($booking);
         $paymentMethod = PaymentMethod::from($paymentDTO->getPaymentMethod());
         $payment->setPaymentMethod($paymentMethod);
+        $payment->setPaymentDate(new \DateTime());
         // Add other necessary fields here
 
         $this->entityManager->persist($payment);

@@ -27,11 +27,11 @@ class FlightController extends AbstractController
             return $this->json(['message' => 'Không đủ quyền'], Response::HTTP_UNAUTHORIZED);
         }
 
-        $data = json_decode($request->getContent(), true);
+        $data = $request->request;
 
         // Đảm bảo thời gian đầu vào sử dụng múi giờ UTC
-        $startTime = DateTime::createFromFormat('Y-m-d H:i:s', $data['startTime'], new \DateTimeZone('UTC'));
-        $endTime = DateTime::createFromFormat('Y-m-d H:i:s', $data['endTime'], new \DateTimeZone('UTC'));
+        $startTime = DateTime::createFromFormat('Y-m-d H:i:s', $data->get('startTime'), new \DateTimeZone('UTC'));
+        $endTime = DateTime::createFromFormat('Y-m-d H:i:s', $data->get('endTime'), new \DateTimeZone('UTC'));
 
         if (!$startTime || !$endTime) {
             return $this->json(['message' => 'Thời gian không hợp lệ'], Response::HTTP_BAD_REQUEST);
@@ -44,14 +44,14 @@ class FlightController extends AbstractController
         $fileName = $this->fileUploader->upload($file);
 
         $dto = new CreateFlightDTO(
-            brand: $data['brand'],
+            brand: $data->get('brand'),
             imgUrl: $fileName,
-            emptySlot: (int)$data['emptySlot'],
+            emptySlot: (int)$data->get('emptySlot'),
             startTime: $startTime,
             endTime: $endTime,
-            startLocation: $data['startLocation'],
-            endLocation: $data['endLocation'],
-            price: (float)$data['price']
+            startLocation: $data->get('startLocation'),
+            endLocation: $data->get('endLocation'),
+            price: (float)$data->get('price')
         );
 
         $flight = $this->flightService->createFlight($dto);
