@@ -77,17 +77,6 @@ class ComboDetailController extends AbstractController
                 'activity' => $comboDetail ? (new ActivityResponseDTO($comboDetail->getActivity()))->toArray() : null,
             ]);
     }
-    #[Route(self::COMBO_DETAIL_ROUTE, methods: ['DELETE'])]
-    public function delete(int $id, Request $request): JsonResponse
-    {
-        $check = $this->checkAdminRole($request);
-        if (!$check) {
-            return $this->json(['message' => 'Không đủ quyền'], Response::HTTP_UNAUTHORIZED);
-        }
-        $this->comboDetailService->deleteComboDetail($id);
-
-        return $this->json(['message' => 'Xóa chi tiết combo thành công'], Response::HTTP_OK);
-    }
 
     private function checkAdminRole(Request $request)
     {

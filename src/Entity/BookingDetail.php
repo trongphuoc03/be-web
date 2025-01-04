@@ -38,10 +38,10 @@ class BookingDetail
     private int $quantity;
 
     #[ORM\Column(type: 'datetime')]
-    private \DateTime $checkInDate;
+    private ?\DateTime $checkInDate;
 
     #[ORM\Column(type: 'datetime')]
-    private \DateTime $checkOutDate;
+    private ?\DateTime $checkOutDate;
 
     // Getter methods
     public function getBookingDetailId(): int

@@ -4,8 +4,6 @@ namespace App\Entity;
 
 use Doctrine\ORM\Mapping as ORM;
 use App\Enum\BookingStatus;
-use ApiPlatform\Metadata\ApiResource;
- // Kích hoạt API Platform cho Entity này
 #[ORM\Entity]
 #[ORM\Table(name: "booking")]
 class Booking

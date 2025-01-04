@@ -27,7 +27,7 @@ class HotelController extends AbstractController
         if (!$check) {
             return $this->json(['message' => 'Không đủ quyền'], Response::HTTP_UNAUTHORIZED);
         }
-        $data = json_decode($request->getContent(), true);
+        $data = $request->request;
         $file = $request->files->get('file');
 
         if (!$file) {
@@ -35,13 +35,13 @@ class HotelController extends AbstractController
         }
         $fileName = $this->fileUploader->upload($file);
         $dto = new CreateHotelDTO(
-            name: $data['name'],
+            name: $data->get('name'),
             imgUrl: $fileName,
-            location: $data['location'],
-            phone: $data['phone'],
-            emptyRoom: $data['emptyRoom'],
-            price: $data['price'],
-            description: $data['description']
+            location: $data->get('location'),
+            phone: $data->get('phone'),
+            emptyRoom: $data->get('emptyRoom'),
+            price: $data->get('price'),
+            description: $data->get('description')
         );
         $hotel = $this->hotelService->createHotel($dto);
 
@@ -79,14 +79,14 @@ class HotelController extends AbstractController
         if (!$check) {
             return $this->json(['message' => 'Không đủ quyền'], Response::HTTP_UNAUTHORIZED);
         }
-        $data = $request->request;
+        $data = json_decode($request->getContent(), true);
         $dto = new UpdateHotelDTO(
-            name: $data->get('name'),
-            location: $data->get('location'),
-            phone: $data->get('phone'),
-            emptyRoom: $data->get('emptyRoom'),
-            price: $data->get('price'),
-            description: $data->get('description')
+            name: $data['name'],
+            location: $data['location'],
+            phone: $data['phone'],
+            emptyRoom: $data['emptyRoom'],
+            price: $data['price'],
+            description: $data['description']
         );
 
         $hotel = $this->hotelService->updateHotel($id, $dto);

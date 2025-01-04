@@ -108,11 +108,11 @@ class UserController extends AbstractController
             $role = $user->getRole();
         }
         $dto = new UpdateUserDTO(
-            username: $data['username'] ?? $user->getUsername(),
-            password: $data['password'] ?? $user->getPassword(),
-            email: $data['email'] ?? $user->getEmail(),
-            phone: $data['phone'] ?? $user->getPhone(),
-            address: $data['address'] ?? $user->getAddress(),
+            username: $data['username'] || $user->getUsername(),
+            password: $data['password'] || $user->getPassword(),
+            email: $data['email'] || $user->getEmail(),
+            phone: $data['phone'] || $user->getPhone(),
+            address: $data['address'] || $user->getAddress(),
             role: $role->value
         );
 

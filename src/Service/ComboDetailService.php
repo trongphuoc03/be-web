@@ -75,4 +75,13 @@ class ComboDetailService
             $this->entityManager->flush();
         }
     }
+
+    public function deleteComboDetailByComboId(int $comboId): void
+    {
+        $comboDetail = $this->getComboDetailByComboId($comboId);
+        if ($comboDetail) {
+            $this->entityManager->remove($comboDetail);
+            $this->entityManager->flush();
+        }
+    }
 }

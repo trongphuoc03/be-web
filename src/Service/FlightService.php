@@ -40,6 +40,15 @@ class FlightService
         return $this->entityManager->getRepository(Flight::class)->find($id);
     }
 
+    public function decreaseEmptySlot(int $id): void
+    {
+        $flight = $this->getFlightById($id);
+        if ($flight) {
+            $flight->setEmptySlot($flight->getEmptySlot() - 1);
+            $this->entityManager->flush();
+        }
+    }
+
     public function updateFlight(int $id, UpdateFlightDTO $flightDTO): ?Flight
     {
         $flight = $this->getFlightById($id);

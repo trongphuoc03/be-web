@@ -26,9 +26,11 @@ class PromoController extends AbstractController
             return $this->json(['message' => 'Không đủ quyền'], Response::HTTP_UNAUTHORIZED);
         }
         $data = $request->request;
-        $expiredDate = DateTime::createFromFormat('Y-m-d H:i:s', $data->get('expiredDate'));
+        $expiredDate = DateTime::createFromFormat('Y-m-d H:i:s', $data->get('expiredDate'), new \DateTimeZone('UTC'));
+        if (!$expiredDate){
+            return $this->json(['message' => 'Thời gian không hợp lệ'], Response::HTTP_BAD_REQUEST);
+        }
         $file = $request->files->get('file');
-
         if (!$file) {
             return $this->json(['error' => 'Không tìm thấy file'], Response::HTTP_BAD_REQUEST);
         }
@@ -48,8 +50,35 @@ class PromoController extends AbstractController
     }
 
     #[Route('/promos/bulk', methods: ['GET'])]
-    public function bulkRead(): JsonResponse
+    public function bulkRead(Request $request): JsonResponse
     {
+        $admin = $this->checkAdminRole($request);
+        list($token, $check) = $this->checkAuthor($request);
+        if (!$check) {
+            $promos = $this->promoService->getAllPromosForUser();
+            $response = [];
+            foreach ($promos as $promo) {
+                $response[] = (new PromoResponseDTO($promo))->toArray();
+            }
+            return $this->json($response);
+        }
+        $role = $this->jWTService->getRoleFromToken($token);
+        if ($role == 'user') {
+            $promos = $this->promoService->getAllPromosForUser();
+            $response = [];
+            foreach ($promos as $promo) {
+                $response[] = (new PromoResponseDTO($promo))->toArray();
+            }
+            return $this->json($response);
+        }
+        if ($role == 'silver') {
+            $promos = $this->promoService->getAllPromosForSilver();
+            $response = [];
+            foreach ($promos as $promo) {
+                $response[] = (new PromoResponseDTO($promo))->toArray();
+            }
+            return $this->json($response);
+        }
         $promos = $this->promoService->getAllPromos();
         $response = [];
 
@@ -82,7 +111,7 @@ class PromoController extends AbstractController
             return $this->json(['message' => 'Không đủ quyền'], Response::HTTP_UNAUTHORIZED);
         }
         $data = json_decode($request->getContent(), true);
-        $expiredDate = DateTime::createFromFormat('Y-m-d H:i:s', $data['expiredDate']);
+        $expiredDate = DateTime::createFromFormat('Y-m-d H:i:s', $data['expiredDate'], new \DateTimeZone('UTC'));
         $dto = new UpdatePromoDTO(
             name: $data['name'],
             description: $data['description'],
@@ -111,20 +140,25 @@ class PromoController extends AbstractController
 
     private function checkAdminRole(Request $request)
     {
-       // Lấy header Authorization
-       $authorizationHeader = $request->headers->get('Authorization');
-       $check = true;
-       // Kiểm tra nếu không có header hoặc header không đúng định dạng
-       if (!$authorizationHeader || !preg_match('/Bearer\s(\S+)/', $authorizationHeader, $matches)) {
-           $check = false;
-       }
        // Tách token từ header
-       $token = $matches[1];
+       list($token, $check) = $this->checkAuthor($request);
 
        // Kiểm tra role
        if (!$this->jWTService->isAdmin($token)) {
-           $check = false;
+        $check = false;
        }
-       return $check;
+        return $check;
+    }
+    
+
+    private function checkAuthor(Request $request){
+        $authorizationHeader = $request->headers->get('Authorization');
+        $check = true;
+       // Kiểm tra nếu không có header hoặc header không đúng định dạng
+       if (!$authorizationHeader || !preg_match('/Bearer\s(\S+)/', $authorizationHeader, $matches)) {
+        $check = false;
+       }
+
+       return [$matches[1], $check];
     }
 }

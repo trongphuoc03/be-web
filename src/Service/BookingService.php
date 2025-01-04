@@ -16,8 +16,11 @@ class BookingService
     public function createBooking(CreateBookingDTO $bookingDTO): Booking
     {
         $booking = new Booking();
+        $now = new \DateTime();
+        $bookingDate = \DateTime::createFromFormat('Y-m-d H:i:s', $now->format('Y-m-d H:i:s'), new \DateTimeZone('UTC'));
         $user = $this->entityManager->getRepository(User::class)->find($bookingDTO->getUserId());
         $booking->setUser($user);
+        $booking->setBookingDate($bookingDate);
         $booking->setPromo($bookingDTO->getPromoId());
         $booking->setTotalPrice($bookingDTO->getTotalPrice());
         $booking->setStatus(BookingStatus::from($bookingDTO->getStatus()));
@@ -30,6 +33,11 @@ class BookingService
     public function getAllBookings(): array
     {
         return $this->entityManager->getRepository(Booking::class)->findAll();
+    }
+
+    public function getBookingsByUserId(int $userId): array
+    {
+        return $this->entityManager->getRepository(Booking::class)->findBy(['user' => $userId]);
     }
 
     public function getBookingById(int $id): ?Booking

@@ -2,6 +2,10 @@
 
 namespace App\DTO\Request\BookingDetail;
 
+use App\Entity\Activity;
+use App\Entity\Combo;
+use App\Entity\Flight;
+use App\Entity\Hotel;
 use Symfony\Component\Validator\Constraints as Assert;
 
 class CreateBookingDetailDTO
@@ -9,10 +13,10 @@ class CreateBookingDetailDTO
     #[Assert\NotBlank]
     public int $bookingId;
 
-    public ?int $flightId = null;
-    public ?int $hotelId = null;
-    public ?int $activityId = null;
-    public ?int $comboId = null;
+    public ?Flight $flightId = null;
+    public ?Hotel $hotelId = null;
+    public ?Activity $activityId = null;
+    public ?Combo $comboId = null;
 
     #[Assert\NotBlank]
     #[Assert\Positive]
@@ -24,7 +28,7 @@ class CreateBookingDetailDTO
     #[Assert\GreaterThan(propertyPath: 'checkInDate')]
     public \DateTimeInterface $checkOutDate;
 
-    public function __construct(int $bookingId, ?int $flightId, ?int $hotelId, ?int $activityId, ?int $comboId, int $quantity, \DateTimeInterface $checkInDate, \DateTimeInterface $checkOutDate)
+    public function __construct(int $bookingId, ?Flight $flightId, ?Hotel $hotelId, ?Activity $activityId, ?Combo $comboId, int $quantity, ?\DateTimeInterface $checkInDate, ?\DateTimeInterface $checkOutDate)
     {
         $this->bookingId = $bookingId;
         $this->flightId = $flightId;
@@ -41,22 +45,22 @@ class CreateBookingDetailDTO
         return $this->bookingId;
     }
 
-    public function getFlightId(): ?int
+    public function getFlightId(): ?Flight
     {
         return $this->flightId;
     }
 
-    public function getHotelId(): ?int
+    public function getHotelId(): ?Hotel
     {
         return $this->hotelId;
     }
 
-    public function getActivityId(): ?int
+    public function getActivityId(): ?Activity
     {
         return $this->activityId;
     }
 
-    public function getComboId(): ?int
+    public function getComboId(): ?Combo
     {
         return $this->comboId;
     }
@@ -66,12 +70,12 @@ class CreateBookingDetailDTO
         return $this->quantity;
     }
 
-    public function getCheckInDate(): \DateTimeInterface
+    public function getCheckInDate(): ?\DateTimeInterface
     {
         return $this->checkInDate;
     }
 
-    public function getCheckOutDate(): \DateTimeInterface
+    public function getCheckOutDate(): ?\DateTimeInterface
     {
         return $this->checkOutDate;
     }
@@ -81,22 +85,22 @@ class CreateBookingDetailDTO
         $this->bookingId = $bookingId;
     }
 
-    public function setFlightId(?int $flightId): void
+    public function setFlightId(?Flight $flightId): void
     {
         $this->flightId = $flightId;
     }
 
-    public function setHotelId(?int $hotelId): void
+    public function setHotelId(?Hotel $hotelId): void
     {
         $this->hotelId = $hotelId;
     }
 
-    public function setActivityId(?int $activityId): void
+    public function setActivityId(?Activity $activityId): void
     {
         $this->activityId = $activityId;
     }
 
-    public function setComboId(?int $comboId): void
+    public function setComboId(?Combo $comboId): void
     {
         $this->comboId = $comboId;
     }
@@ -106,12 +110,12 @@ class CreateBookingDetailDTO
         $this->quantity = $quantity;
     }
 
-    public function setCheckInDate(\DateTimeInterface $checkInDate): void
+    public function setCheckInDate(?\DateTimeInterface $checkInDate): void
     {
         $this->checkInDate = $checkInDate;
     }
 
-    public function setCheckOutDate(\DateTimeInterface $checkOutDate): void
+    public function setCheckOutDate(?\DateTimeInterface $checkOutDate): void
     {
         $this->checkOutDate = $checkOutDate;
     }

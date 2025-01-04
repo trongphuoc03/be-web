@@ -35,6 +35,15 @@ class ActivityService
         return $this->entityManager->getRepository(Activity::class)->find($id);
     }
 
+    public function decreaseEmptySlot(int $id): void
+    {
+        $activity = $this->getActivityById($id);
+        if ($activity) {
+            $activity->setEmptySlot($activity->getEmptySlot() - 1);
+            $this->entityManager->flush();
+        }
+    }
+
     public function updateActivity(int $id, UpdateActivityDTO $activityDTO): ?Activity
     {
         $activity = $this->getActivityById($id);

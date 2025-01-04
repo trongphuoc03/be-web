@@ -38,6 +38,14 @@ class HotelService
         return $this->entityManager->getRepository(Hotel::class)->find($id);
     }
 
+    public function decreaseEmptyRoom(int $id): void
+    {
+        $hotel = $this->getHotelById($id);
+        if ($hotel) {
+            $hotel->setEmptyRoom($hotel->getEmptyRoom() - 1);
+            $this->entityManager->flush();
+        }
+    }
     public function updateHotel(int $id, UpdateHotelDTO $hotelDTO): Hotel
     {
         $hotel = $this->getHotelById($id);

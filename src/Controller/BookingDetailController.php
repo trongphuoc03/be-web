@@ -2,7 +2,6 @@
 
 namespace App\Controller;
 
-use App\DTO\Request\BookingDetail\CreateBookingDetailDTO;
 use App\DTO\Request\BookingDetail\UpdateBookingDetailDTO;
 use App\DTO\Response\BookingDetail\BookingDetailResponseDTO;
 use App\Service\BookingDetailService;

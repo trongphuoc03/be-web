@@ -54,6 +54,12 @@ class ComboController extends AbstractController
         $flight = $this->flightService->getFlightById($data->get('flightId'));
         $hotel = $this->hotelService->getHotelById($data->get('hotelId'));
         $activity = $this->activityService->getActivityById($data->get('activityId'));
+        if (!$flight || !$hotel || !$activity) {
+            return $this->json(['message' => 'Không tìm thấy flight, hotel hoặc activity'], Response::HTTP_NOT_FOUND);
+        }
+        if ($flight->getEmptySlot() <= 0 || $hotel->getEmptyRoom() <= 0 || $activity->getEmptySlot() <= 0) {
+            return $this->json(['message' => 'Flight, hotel hoặc activity không còn chỗ trống'], Response::HTTP_BAD_REQUEST);
+        }
         $dto = new CreateComboDetailDTO(comboId: $combo, flightId: $flight, hotelId: $hotel, activityId: $activity);
         $this->comboDetailService->createComboDetail($dto);
         $response = [
@@ -144,6 +150,7 @@ class ComboController extends AbstractController
             return $this->json(['message' => 'Không đủ quyền'], Response::HTTP_UNAUTHORIZED);
         }
         $this->comboService->deleteCombo($id);
+        $this->comboDetailService->deleteComboDetailByComboId($id);
 
         return $this->json(['message' => 'Xóa combo thành công'], Response::HTTP_OK);
     }

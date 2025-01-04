@@ -4,8 +4,6 @@ namespace App\Entity;
 
 use Doctrine\ORM\Mapping as ORM;
 use App\Enum\PromoCondition;
-use ApiPlatform\Metadata\ApiResource;
- // Kích hoạt API Platform cho Entity này
 #[ORM\Entity]
 #[ORM\Table(name: "promo")]
 class Promo
@@ -106,9 +104,9 @@ class Promo
         $this->discount = $discount;
     }
 
-    public function setCreatedDate(): void
+    public function setCreatedDate(\DateTime $createdDate): void
     {
-        $this->createdDate = new \DateTime();
+        $this->createdDate = $createdDate;
     }
 
     public function setExpiredDate(\DateTime $expiredDate): void

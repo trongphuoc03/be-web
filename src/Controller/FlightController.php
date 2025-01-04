@@ -92,17 +92,21 @@ class FlightController extends AbstractController
         if (!$check) {
             return $this->json(['message' => 'Không đủ quyền'], Response::HTTP_UNAUTHORIZED);
         }
-        $data = $request->request;
-        $startTime = DateTime::createFromFormat('Y-m-d H:i:s', $data->get('startTime'));
-        $endTime = DateTime::createFromFormat('Y-m-d H:i:s', $data->get('endTime'));
+        $data = json_decode($request->getContent(), true);
+        // Đảm bảo thời gian đầu vào sử dụng múi giờ UTC
+        $startTime = DateTime::createFromFormat('Y-m-d H:i:s', $data['startTime'], new \DateTimeZone('UTC'));
+        $endTime = DateTime::createFromFormat('Y-m-d H:i:s', $data['endTime'], new \DateTimeZone('UTC'));
+        if (!$startTime || !$endTime) {
+            return $this->json(['message' => 'Thời gian không hợp lệ'], Response::HTTP_BAD_REQUEST);
+        }
         $dto = new UpdateFlightDTO(
-            brand: $data->get('brand'),
-            emptySlot: $data->get('emptySlot'),
+            brand: $data['brand'],
+            emptySlot: $data['emptySlot'],
             startTime: $startTime,
             endTime: $endTime,
-            startLocation: $data->get('startLocation'),
-            endLocation: $data->get('endLocation'),
-            price: $data->get('price')
+            startLocation: $data['startLocation'],
+            endLocation: $data['endLocation'],
+            price: $data['price']
         );
 
         $flight = $this->flightService->updateFlight($id, $dto);

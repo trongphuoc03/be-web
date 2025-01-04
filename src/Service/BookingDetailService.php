@@ -15,13 +15,13 @@ class BookingDetailService
     public function createBookingDetail(CreateBookingDetailDTO $bookingDetailDTO): BookingDetail
     {
         $bookingDetail = new BookingDetail();
-
+        
         $booking = $this->entityManager->getRepository(Booking::class)->find($bookingDetailDTO->getBookingId());
         $bookingDetail->setBooking($booking);
         $bookingDetail->setFlight($bookingDetailDTO->getFlightId());
         $bookingDetail->setHotel($bookingDetailDTO->getHotelId());
         $bookingDetail->setActivity($bookingDetailDTO->getActivityId());
-        $bookingDetail->setCombo($bookingDetailDTO->getComboId()); 
+        $bookingDetail->setCombo($bookingDetailDTO->getComboId());
         $bookingDetail->setQuantity($bookingDetailDTO->getQuantity());
         $bookingDetail->setCheckInDate($bookingDetailDTO->getCheckInDate());
         $bookingDetail->setCheckOutDate($bookingDetailDTO->getCheckOutDate());       
@@ -34,6 +34,11 @@ class BookingDetailService
     public function getBookingDetailById(int $id): ?BookingDetail
     {
         return $this->entityManager->getRepository(BookingDetail::class)->find($id);
+    }
+
+    public function getBookingDetailByBookingId(int $bookingId): ?BookingDetail
+    {
+        return $this->entityManager->getRepository(BookingDetail::class)->findOneBy(['booking' => $bookingId]);
     }
 
     public function getAllBookingDetails(): array
